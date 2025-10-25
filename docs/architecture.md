@@ -1,4 +1,6 @@
-## Sound generation
+# Sound generation
+
+## Highlevel picture of sound generation via MIDI controller
 
 ### Flowchart View — Signal Path (Top-down)
 ```mermaid
@@ -15,12 +17,14 @@ flowchart TD
     Voice -->|"voice audio"| VoiceManager -->|"mix voices"| PluginProcessor -->|"write to buffer"| Output
 ```
 
-### A1: Note-On — External Interface
+## `Note On` event: *When key is pressed on MIDI controller*
+
+### A1: `Note On` — External Interface
 ```mermaid
 sequenceDiagram
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as Note-On Internal Processing
+participant Ref as `Note On` Internal Processing
 participant Buffer as JUCE AudioBuffer<float>
 
 Note over MIDI,Buffer: External communication — plugin entry/exit
@@ -31,9 +35,9 @@ Ref-->>PluginProcessor: (see next diagram)
 PluginProcessor-->>Buffer: writes processed samples to buffer
 ```
 
-Continues in: [A2: Note-On — Internal Processing](#a2-note-on--internal-processing)
+Continues in: [A2: `Note On` — Internal Processing](#a2-`note on`--internal-processing)
 
-### A2: Note-On — Internal Processing
+### A2: `Note On` — Internal Processing
 ```mermaid
 sequenceDiagram
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
@@ -51,14 +55,16 @@ VoiceManager-->>PluginProcessor: mix all active voices
 Note over PluginProcessor: returns to A1 (see link below)
 ```
 
-Returns to: [A1: Note-On — External Interface](#a1-note-on--external-interface)
+Returns to: [A1: `Note On` — External Interface](#a1-`note on`--external-interface)
 
-### B1: Note-Off — External Interface
+## `Note Off` event: *When key is lifted up on MIDI controller*
+
+### B1: `Note Off` — External Interface
 ```mermaid
 sequenceDiagram
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as Note-Off Internal Processing
+participant Ref as `Note Off` Internal Processing
 participant Buffer as JUCE AudioBuffer<float>
 
 Note over MIDI,Buffer: External communication — plugin entry/exit
@@ -69,9 +75,9 @@ Ref-->>PluginProcessor: (see next diagram)
 PluginProcessor-->>Buffer: writes updated samples to buffer
 ```
 
-Continues in: [B2: Note-Off — Internal Processing](#b2-note-off--internal-processing)
+Continues in: [B2: `Note Off` — Internal Processing](#b2-`note off`--internal-processing)
 
-### B2: Note-Off — Internal Processing
+### B2: `Note Off` — Internal Processing
 ```mermaid
 sequenceDiagram
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
@@ -88,9 +94,12 @@ VoiceManager-->>PluginProcessor: remove finished voices
 Note over PluginProcessor: returns to B1 (see link below)
 ```
 
-Returns to: [B1: Note-Off — External Interface](#b1-note-off--external-interface)
+Returns to: [B1: `Note Off` — External Interface](#b1-`note off`--external-interface)
 
-## Sound modulation
+# Sound modulation
+
+## Highlevel picture of sound modulation via MIDI controller
+
 ### Flowchart View — Parameter Signal Path (Top-down)
 ```mermaid
 flowchart TD
@@ -109,6 +118,8 @@ flowchart TD
     Voice -->|"apply freq, amp, env params"| DSP
 
 ```
+
+## `Parameter Update` event: *[...]*
 
 ### C1: Parameter Update — External Interface
 ```mermaid
