@@ -1,70 +1,150 @@
-(A) Note-On sequence
+## Sound generation
+
+### Flowchart View — Signal Path (Top-down)
+```mermaid
+flowchart TD
+    MIDI["MIDI Controller"]
+    PluginProcessor["PluginProcessor.cpp/.h"]
+    VoiceManager["VoiceManager.h"]
+    Voice["Voice.h"]
+    DSP["Oscillator.h<br/>Envelope.h"]
+    Output["JUCE AudioBuffer<float> → Host"]
+
+    MIDI -->|"MIDI Note On/Off events"| PluginProcessor -->|"allocate/release Voice"| VoiceManager -->|"init freq + ADSR params"| Voice
+    Voice -->|"reset phase + ADSR.noteOn()/noteOff()"| DSP -->|"per-sample envelope & audio samples"| Voice
+    Voice -->|"voice audio"| VoiceManager -->|"mix voices"| PluginProcessor -->|"write to buffer"| Output
+```
+
+### A1: Note-On — External Interface
 ```mermaid
 sequenceDiagram
-participant DAW as DAW (Host)
-participant PluginProcessor as PluginProcessor.cpp/.h
+participant MIDI as MIDI Controller (External)
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant Ref as Note-On Internal Processing
+participant Buffer as JUCE AudioBuffer<float>
+
+Note over MIDI,Buffer: External communication — plugin entry/exit
+MIDI->>PluginProcessor: MIDI Note On event
+PluginProcessor->>Ref: hand-off to internal processing
+Note over Ref: continues in A2 (see link below)
+Ref-->>PluginProcessor: (see next diagram)
+PluginProcessor-->>Buffer: writes processed samples to buffer
+```
+
+Continues in: [A2: Note-On — Internal Processing](#a2-note-on--internal-processing)
+
+### A2: Note-On — Internal Processing
+```mermaid
+sequenceDiagram
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
-participant DSP as Oscillator.h\n+Envelope.h
-participant Output as Audio Buffer (JUCE)
+participant DSP as Oscillator.h + Envelope.h
 
-Note over DAW,Output: Note-On Path (Voice Allocation + Start)
-DAW->>PluginProcessor: MIDI Note On
+Note over PluginProcessor,DSP: Internal signal flow — Voice Allocation + Start
 PluginProcessor->>VoiceManager: allocate Voice for note
 VoiceManager->>Voice: initialize Voice (freq, ADSR params)
 Voice->>DSP: reset phase + ADSR.noteOn()
 DSP-->>Voice: per-sample amplitude envelope
 Voice-->>VoiceManager: stream voice audio
 VoiceManager-->>PluginProcessor: mix all active voices
-PluginProcessor->>Output: write to DAW output buffer
+Note over PluginProcessor: returns to A1 (see link below)
 ```
 
-(B) Note-Off sequence
+Returns to: [A1: Note-On — External Interface](#a1-note-on--external-interface)
+
+### B1: Note-Off — External Interface
 ```mermaid
 sequenceDiagram
-participant DAW as DAW (Host)
-participant PluginProcessor as PluginProcessor.cpp/.h
+participant MIDI as MIDI Controller (External)
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant Ref as Note-Off Internal Processing
+participant Buffer as JUCE AudioBuffer<float>
+
+Note over MIDI,Buffer: External communication — plugin entry/exit
+MIDI->>PluginProcessor: MIDI Note Off event
+PluginProcessor->>Ref: hand-off to internal processing
+Note over Ref: continues in B2 (see link below)
+Ref-->>PluginProcessor: (see next diagram)
+PluginProcessor-->>Buffer: writes updated samples to buffer
+```
+
+Continues in: [B2: Note-Off — Internal Processing](#b2-note-off--internal-processing)
+
+### B2: Note-Off — Internal Processing
+```mermaid
+sequenceDiagram
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
-participant DSP as Oscillator.h\n+Envelope.h
-participant Output as Audio Buffer (JUCE)
+participant DSP as Oscillator.h + Envelope.h
 
-Note over DAW,Output: Note-Off Path (Release + Cleanup)
-DAW->>PluginProcessor: MIDI Note Off
-PluginProcessor->>VoiceManager: find Voice for note
+Note over PluginProcessor,DSP: Internal signal flow — Release + Cleanup
+PluginProcessor->>VoiceManager: locate Voice for note
 VoiceManager->>Voice: ADSR.noteOff()
 DSP-->>Voice: fade to zero during release
 Voice-->>VoiceManager: signal inactive (ADSR completed)
 VoiceManager-->>PluginProcessor: remove finished voices
+Note over PluginProcessor: returns to B1 (see link below)
 ```
 
-(C) Parameter Update
-```mermaid
-sequenceDiagram
-participant GUI as PluginEditor.cpp/.h
-participant PluginProcessor as PluginProcessor.cpp/.h
-participant VoiceManager as VoiceManager.h
-participant Voice as Voice.h
+Returns to: [B1: Note-Off — External Interface](#b1-note-off--external-interface)
 
-Note over GUI,Voice: Parameter Updates (Real-Time Safe)
-GUI->>PluginProcessor: parameter change (KnobState)
-PluginProcessor->>PluginProcessor: apply SmoothedValue ramp
-PluginProcessor->>VoiceManager: propagate parameter to Voices
-VoiceManager->>Voice: update oscillator/envelope settings
-Note over PluginProcessor,Voice: all updates are thread-safe and smoothed
-```
-
-(D) Flowchart View — Signal Path (Top-down)
+## Sound modulation
+### Flowchart View — Parameter Signal Path (Top-down)
 ```mermaid
 flowchart TD
-DAW["DAW (Host)"]
-PluginProcessor["PluginProcessor.cpp/.h"]
-VoiceManager["VoiceManager.h"]
-Voice["Voice.h"]
-DSP["Oscillator.h\n+Envelope.h"]
-Output["JUCE Audio Output Buffer"]
+    GUI["PluginEditor.cpp/.h"]
+    Processor["PluginProcessor.cpp/.h"]
+    Smooth["SmoothedValue<br/>(parameter ramping)"]
+    VoiceManager["VoiceManager.h"]
+    Voice["Voice.h"]
+    DSP["Oscillator.h<br/>Envelope.h"]
 
-DAW -->|MIDI Note On| PluginProcessor -->|allocate Voice| VoiceManager -->|init freq/ADSR| Voice
-Voice -->|reset phase + ADSR.noteOn()| DSP -->|per-sample envelope| Voice
-Voice -->|audio samples| VoiceManager -->|mix| PluginProcessor -->|write buffer| Output
+    GUI -->|"User changes knob / slider (KnobState)"| Processor
+    Processor -->|"updates SmoothedValue targets"| Smooth
+    Smooth -->|"outputs smoothed values per block"| Processor
+    Processor -->|"propagates parameters"| VoiceManager
+    VoiceManager -->|"update per-voice settings"| Voice
+    Voice -->|"apply freq, amp, env params"| DSP
+
 ```
+
+### C1: Parameter Update — External Interface
+```mermaid
+sequenceDiagram
+participant GUI as PluginEditor.cpp/.h (External)
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant Ref as Parameter Update Internal Processing
+participant Buffer as JUCE AudioBuffer<float>
+
+Note over GUI,Buffer: External control — parameter change from GUI to audio thread
+GUI->>PluginProcessor: parameter change (KnobState)
+PluginProcessor->>Ref: hand-off to internal smoothing and propagation
+Note over Ref: continues in C2 (see link below)
+Ref-->>PluginProcessor: (see next diagram)
+PluginProcessor-->>Buffer: next audio block uses updated smoothed values
+```
+
+Continues in: [C2: Parameter Update — Internal Processing](#c2-parameter-update--internal-processing)
+
+### C2: Parameter Update — Internal Processing
+```mermaid
+sequenceDiagram
+participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant VoiceManager as VoiceManager.h
+participant Voice as Voice.h
+participant DSP as Oscillator.h + Envelope.h
+
+Note over PluginProcessor,DSP: Internal signal flow — smoothing and parameter propagation
+PluginProcessor->>PluginProcessor: apply SmoothedValue ramp (thread-safe)
+PluginProcessor->>VoiceManager: propagate parameters to Voices
+VoiceManager->>Voice: update oscillator/envelope settings
+Voice->>DSP: adjust frequency / gain / ADSR targets
+DSP-->>Voice: apply smoothed parameters per sample
+Voice-->>VoiceManager: updated audio stream reflects new parameters
+VoiceManager-->>PluginProcessor: mixed audio with parameter changes applied
+Note over PluginProcessor: returns to C1 (see link below)
+```
+
+Returns to: [C1: Parameter Update — External Interface](#c1-parameter-update--external-interface)
