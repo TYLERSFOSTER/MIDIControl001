@@ -57,10 +57,10 @@ sequenceDiagram
 participant Buffer as JUCE AudioBuffer<float>
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as Synthesis Engine
+participant Ref as Processor Core
 
 Note over Buffer,PluginProcessor: External communication — plugin entry/exit
-Note over PluginProcessor,Ref: Internal processing (DSP)
+Note over PluginProcessor,Ref: Internal process. (DSP) — Voice alloc. + start
 MIDI->>PluginProcessor: MIDI Note On event
 PluginProcessor->>Ref: hand-off to internal processing
 Note over Ref: continues in A2 (see link below)
@@ -79,7 +79,7 @@ participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
 participant DSP as Oscillator.h + Envelope.h
 
-Note over PluginProcessor,DSP: Internal signal flow — Voice Allocation + Start
+Note over PluginProcessor,DSP: Internal processing (DSP) — Voice allocation + start
 Note over ValueTree,DSP: Processor Core
 Note over VoiceManager,DSP: Synthesis Engine
 PluginProcessor->>ValueTree: read ADSR parameters
@@ -102,10 +102,10 @@ sequenceDiagram
 participant Buffer as JUCE AudioBuffer<float>
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as `Note Off` Internal Processing
+participant Ref as Processor Core
 
 Note over Buffer,PluginProcessor: External communication — plugin entry/exit
-Note over PluginProcessor,Ref: Internal processing (DSP)
+Note over PluginProcessor,Ref: Internal processing (DSP) — release + cleanup
 MIDI->>PluginProcessor: MIDI Note Off event
 PluginProcessor->>Ref: hand-off to internal processing
 Note over Ref: continues in B2 (see link below)
@@ -124,7 +124,7 @@ participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
 participant DSP as Envelope.h + Oscillator.h
 
-Note over PluginProcessor,DSP: Internal signal flow — Release + Cleanup
+Note over PluginProcessor,DSP: Internal processing (DSP) — release + cleanup
 Note over ValueTree,DSP: Processor Core
 Note over VoiceManager,DSP: Synthesis Engine
 PluginProcessor->>ValueTree: read release parameter
