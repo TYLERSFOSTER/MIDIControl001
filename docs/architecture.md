@@ -1,140 +1,174 @@
+# Plugin Design / Architecture
+
+## Runtime Context — Host Environments
+
+JUCE plugins always run *inside a host*, which owns the real-time audio loop and the message (GUI) thread.  
+Depending on how the plugin is built or launched, the *host* can be:
+
+1. a **DAW** such as FL Studio or Logic (VST3/AU),
+2. the **JUCE Standalone wrapper** (self-hosted executable),
+3. a **custom CLI runner** that instantiates the DSP directly.
+
+All three call the same `PluginProcessor` and optional `PluginEditor`,  
+but differ in *who owns the main loop* and *who calls `processBlock()`*.
+
+### Host responsibilities
+
+| Environment | Who owns main loop | What JUCE does | Typical entry point |
+|--------------|--------------------|----------------|---------------------|
+| **DAW Host (e.g. FL Studio)** | The DAW’s engine | JUCE runs *inside* the plugin process, handling `AudioProcessor` + GUI layers | `processBlock()` called by host |
+| **JUCE Standalone** | JUCE itself | JUCE provides audio + MIDI devices and runs its own threads | `StandaloneFilterWindow` |
+| **CLI Runner (Custom)** | Your `main()` | You instantiate `PluginProcessor` manually, feed MIDI/buffers, render to file | `PluginProcessor::processBlock()` |
+
+### Conceptual layering
+
+```text
+       [DAW Host] → calls → [JUCE Plugin Framework] → [PluginProcessor → DSP]
+[Standalone Host] → calls → [JUCE Plugin Framework] → [PluginProcessor → DSP]
+     [CLI Runner] → calls → [JUCE Plugin Framework] → [PluginProcessor → DSP]
+```
+
+## Module Dependencies
+
+```text
+Host (DAW/Standalone)
+ ├─ calls → PluginProcessor.cpp  ← (real-time audio loop)
+ │             ├─ owns AudioProcessorValueTreeState (shared parameter state)
+ │             ├─ uses VoiceManager.h        (Factory / Pool)
+ │             │     └─ uses Voice.h         (Strategy interface)
+ │             │           ├─ uses Oscillator.h (Concrete Strategy)
+ │             │           └─ uses Envelope.h   (Concrete Strategy)
+ │             ├─ uses SmoothedValue (Decorator for per-param smoothing)
+ │             ├─ updates ValueTree from MIDI CC / Host automation
+ │             └─ notifies PluginEditor.cpp via APVTS attachments (Observer)
+ │
+ └─ calls → PluginEditor.cpp     ← (GUI thread / Active Object)
+               └─ observes ValueTree via parameter attachments
+```
+
 # Sound generation
 
-## Highlevel picture of sound generation via MIDI controller
-
-### Flowchart View — Signal Path (Top-down)
-```mermaid
-flowchart TD
-    MIDI["MIDI Controller"]
-    PluginProcessor["PluginProcessor.cpp/.h"]
-    VoiceManager["VoiceManager.h"]
-    Voice["Voice.h"]
-    DSP["Oscillator.h<br/>Envelope.h"]
-    Output["JUCE AudioBuffer<float> → Host"]
-
-    MIDI -->|"MIDI Note On/Off events"| PluginProcessor -->|"allocate/release Voice"| VoiceManager -->|"init freq + ADSR params"| Voice
-    Voice -->|"reset phase + ADSR.noteOn()/noteOff()"| DSP -->|"per-sample envelope & audio samples"| Voice
-    Voice -->|"voice audio"| VoiceManager -->|"mix voices"| PluginProcessor -->|"write to buffer"| Output
-```
 
 ## `Note On` event: *When key is pressed on MIDI controller*
 
 ### A1: `Note On` — External Interface
 ```mermaid
 sequenceDiagram
+participant Buffer as JUCE AudioBuffer<float>
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as `Note On` Internal Processing
-participant Buffer as JUCE AudioBuffer<float>
+participant Ref as Synthesis Engine
 
-Note over MIDI,Buffer: External communication — plugin entry/exit
+Note over Buffer,PluginProcessor: External communication — plugin entry/exit
+Note over PluginProcessor,Ref: Internal processing (DSP)
 MIDI->>PluginProcessor: MIDI Note On event
 PluginProcessor->>Ref: hand-off to internal processing
 Note over Ref: continues in A2 (see link below)
-Ref-->>PluginProcessor: (see next diagram)
+Ref-->>PluginProcessor: (returns voice audio)
 PluginProcessor-->>Buffer: writes processed samples to buffer
 ```
 
-Continues in: [A2: `Note On` — Internal Processing](#a2-`note on`--internal-processing)
+Continues in: [A2: `Note On` — Internal Processing (DSP)](#a2-note-on--internal-processing-dsp)
 
-### A2: `Note On` — Internal Processing
+### A2: `Note On` — Internal Processing (DSP)
 ```mermaid
 sequenceDiagram
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant ValueTree as APVTS
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
 participant DSP as Oscillator.h + Envelope.h
 
 Note over PluginProcessor,DSP: Internal signal flow — Voice Allocation + Start
-PluginProcessor->>VoiceManager: allocate Voice for note
-VoiceManager->>Voice: initialize Voice (freq, ADSR params)
-Voice->>DSP: reset phase + ADSR.noteOn()
-DSP-->>Voice: per-sample amplitude envelope
+Note over ValueTree,DSP: Processor Core
+Note over VoiceManager,DSP: Synthesis Engine
+PluginProcessor->>ValueTree: read ADSR parameters
+PluginProcessor->>VoiceManager: allocate Voice for note (Factory)
+VoiceManager->>Voice: init. w/ ADSR params
+Voice->>DSP: note on + phase reset
+DSP-->>Voice: per-sample amplitude
 Voice-->>VoiceManager: stream voice audio
 VoiceManager-->>PluginProcessor: mix all active voices
 Note over PluginProcessor: returns to A1 (see link below)
 ```
 
-Returns to: [A1: `Note On` — External Interface](#a1-`note on`--external-interface)
+Returns to: [A1: `Note On` — External Interface](#a1-note-on--external-interface)
 
 ## `Note Off` event: *When key is lifted up on MIDI controller*
 
 ### B1: `Note Off` — External Interface
 ```mermaid
 sequenceDiagram
+participant Buffer as JUCE AudioBuffer<float>
 participant MIDI as MIDI Controller (External)
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
 participant Ref as `Note Off` Internal Processing
-participant Buffer as JUCE AudioBuffer<float>
 
-Note over MIDI,Buffer: External communication — plugin entry/exit
+Note over Buffer,PluginProcessor: External communication — plugin entry/exit
+Note over PluginProcessor,Ref: Internal processing (DSP)
 MIDI->>PluginProcessor: MIDI Note Off event
 PluginProcessor->>Ref: hand-off to internal processing
 Note over Ref: continues in B2 (see link below)
-Ref-->>PluginProcessor: (see next diagram)
+Ref-->>PluginProcessor: (returns silence / tail samples)
 PluginProcessor-->>Buffer: writes updated samples to buffer
 ```
 
-Continues in: [B2: `Note Off` — Internal Processing](#b2-`note off`--internal-processing)
+Continues in: [B2: `Note Off` — Internal Processing (DSP)](#b2-note-off--internal-processing-dsp)
 
-### B2: `Note Off` — Internal Processing
+### B2: `Note Off` — Internal Processing (DSP)
 ```mermaid
 sequenceDiagram
 participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
+participant ValueTree as APVTS
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
-participant DSP as Oscillator.h + Envelope.h
+participant DSP as Envelope.h + Oscillator.h
 
 Note over PluginProcessor,DSP: Internal signal flow — Release + Cleanup
+Note over ValueTree,DSP: Processor Core
+Note over VoiceManager,DSP: Synthesis Engine
+PluginProcessor->>ValueTree: read release parameter
 PluginProcessor->>VoiceManager: locate Voice for note
-VoiceManager->>Voice: ADSR.noteOff()
-DSP-->>Voice: fade to zero during release
-Voice-->>VoiceManager: signal inactive (ADSR completed)
-VoiceManager-->>PluginProcessor: remove finished voices
+VoiceManager->>Voice: trigger note release
+Voice->>DSP: ADSR gets fade/sample
+DSP-->>Voice: output decaying waveform
+Voice-->>VoiceManager: signal inactive
+VoiceManager-->>PluginProcessor: remove finished voice
 Note over PluginProcessor: returns to B1 (see link below)
 ```
 
-Returns to: [B1: `Note Off` — External Interface](#b1-`note off`--external-interface)
+Returns to: [B1: `Note Off` — External Interface](#b1-note-off--external-interface)
 
 # Sound modulation
 
-## Highlevel picture of sound modulation via MIDI controller
+## `Parameter Update` event: *Triggered by GUI, MIDI CC, or Host Automation*
 
-### Flowchart View — Parameter Signal Path (Top-down)
-```mermaid
-flowchart TD
-    GUI["PluginEditor.cpp/.h"]
-    Processor["PluginProcessor.cpp/.h"]
-    Smooth["SmoothedValue<br/>(parameter ramping)"]
-    VoiceManager["VoiceManager.h"]
-    Voice["Voice.h"]
-    DSP["Oscillator.h<br/>Envelope.h"]
+Parameter updates may originate from:
+- user interaction in the `PluginEditor`,
+- incoming MIDI controller data, or
+- DAW automation envelopes.
 
-    GUI -->|"User changes knob / slider (KnobState)"| Processor
-    Processor -->|"updates SmoothedValue targets"| Smooth
-    Smooth -->|"outputs smoothed values per block"| Processor
-    Processor -->|"propagates parameters"| VoiceManager
-    VoiceManager -->|"update per-voice settings"| Voice
-    Voice -->|"apply freq, amp, env params"| DSP
-
-```
-
-## `Parameter Update` event: *[...]*
+All of these updates converge in the **AudioProcessorValueTreeState** (APVTS),  
+which the `PluginProcessor` owns. The APVTS synchronizes parameter values  
+across threads and provides smoothed transitions for DSP consumption.
 
 ### C1: Parameter Update — External Interface
+
 ```mermaid
 sequenceDiagram
-participant GUI as PluginEditor.cpp/.h (External)
-participant PluginProcessor as PluginProcessor.cpp/.h (Interface)
-participant Ref as Parameter Update Internal Processing
+participant GUI as PluginEditor.cpp/.h (GUI Thread)
+participant MIDI as MIDI Controller (External)
+participant Host as DAW Automation
+participant APVTS as AudioProcessorValueTreeState (Shared State)
+participant PluginProcessor as PluginProcessor.cpp/.h (Audio Thread)
 participant Buffer as JUCE AudioBuffer<float>
 
-Note over GUI,Buffer: External control — parameter change from GUI to audio thread
-GUI->>PluginProcessor: parameter change (KnobState)
-PluginProcessor->>Ref: hand-off to internal smoothing and propagation
-Note over Ref: continues in C2 (see link below)
-Ref-->>PluginProcessor: (see next diagram)
-PluginProcessor-->>Buffer: next audio block uses updated smoothed values
+Note over GUI,Buffer: Parameter updates (GUI, MIDI, or Host automation)
+GUI->>APVTS: knob or slider change (Attachment)
+MIDI->>APVTS: CC message mapped to parameter
+Host->>APVTS: automation event
+APVTS->>PluginProcessor: notify of updated values
+PluginProcessor->>Buffer: next audio block uses smoothed params
 ```
 
 Continues in: [C2: Parameter Update — Internal Processing](#c2-parameter-update--internal-processing)
