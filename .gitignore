@@ -1,41 +1,96 @@
-# Prerequisites
-*.d
+# ============================================================
+# JUCE + CMake plugin project .gitignore
+# ============================================================
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# --- Build artefacts ---
+/build/
+/MIDIControl001_artefacts/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Testing/
+CTestTestfile.cmake
+Makefile
 
-# Precompiled Headers
-*.gch
-*.pch
+# --- JUCE submodule build output ---
+/juceaide
+/juce/bin/
+/juce/build/
+/juce/CMakeFiles/
+/juce/CMakeCache.txt
 
-# Linker files
-*.ilk
-
-# Debugger Files
+# --- IDEs and local tools ---
+.vscode/
+.idea/
+.DS_Store
+*.user
+*.suo
+*.ncb
 *.pdb
+*.opendb
 
-# Compiled Dynamic libraries
+# --- Compiled binaries ---
+*.a
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
 *.exe
-*.out
 *.app
+*.vst3
+*.component
+*.lv2
+*.zip
 
-# debug information files
-*.dwo
+# --- Object and intermediate files ---
+*.o
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.log
+
+# --- Auto-generated JUCE headers ---
+/Source/JuceLibraryCode/
+/MIDIControl001_artefacts/**/JuceLibraryCode/
+/MIDIControl001_artefacts/**/JuceHeader.h
+
+# --- Catch2 or external deps ---
+/_deps/
+*.bak
+
+# --- User-local junk ---
+*~
+*.swp
+*.tmp
+*.lock
+*.orig
+
+# --- Optional: docs build outputs ---
+/docs/*.html
+/docs/*.pdf
+/docs/*.aux
+/docs/*.out
+/docs/*.log
+
+# --- macOS metadata ---
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Xcode ---
+*.xcworkspace/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcuserstate
+
+# --- Visual Studio ---
+*.vs/
+*.vcxproj*
+*.sln
+
+# --- JUCE-generated build files (safety net) ---
+JuceLibraryCode/

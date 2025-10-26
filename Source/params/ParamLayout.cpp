@@ -1,5 +1,5 @@
 // ParamLayout.cpp
-#include "ParamLayout.h"
+#include <juce_audio_processors/juce_audio_processors.h>
 #include "ParameterIDs.h"
 
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
