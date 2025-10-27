@@ -1,11 +1,24 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.20)  # 3.20 is enough for JUCE 7
 project(MIDIControl001 VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_subdirectory(juce)
+include(FetchContent)
 
+# ============================================================
+# JUCE FetchContent (using stable JUCE 7.0.9)
+# ============================================================
+FetchContent_Declare(
+    juce
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG        7.0.9
+)
+FetchContent_MakeAvailable(juce)
+
+# ============================================================
+# Plugin target
+# ============================================================
 juce_add_plugin(MIDIControl001
     COMPANY_NAME "YourCompany"
     BUNDLE_ID    com.yourcompany.midicontrol001
@@ -40,11 +53,11 @@ target_sources(MIDIControl001
         Source/dsp/oscillators/OscillatorA.h
         Source/dsp/envelopes/EnvelopeA.h
 
-        # gui (if separate components exist)
+        # gui
         Source/gui/VoiceGUI.h
         Source/gui/MasterGUI.h
 
-        # utils (optional)
+        # utils
         Source/utils/Logger.h
         Source/utils/MathHelpers.h
 )
@@ -60,7 +73,9 @@ target_link_libraries(MIDIControl001
         juce::juce_dsp
 )
 
-# Recommended definitions for plugins
+# ============================================================
+# Recommended plugin compile definitions
+# ============================================================
 target_compile_definitions(MIDIControl001
     PRIVATE
         JUCE_WEB_BROWSER=0
@@ -68,9 +83,8 @@ target_compile_definitions(MIDIControl001
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
+# ============================================================
+# Tests
+# ============================================================
 enable_testing()
 add_subdirectory(Tests)
-
-add_dependencies(MIDIControl001 juce::juce_graphics)
-add_dependencies(MIDIControl001_tests juce::juce_graphics)
-
