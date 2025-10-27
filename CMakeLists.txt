@@ -31,6 +31,28 @@ juce_add_plugin(MIDIControl001
     PLUGIN_CODE Mc01
     FORMATS VST3 Standalone
     PRODUCT_NAME "MIDIControl001"
+
+    SOURCES
+        Source/plugin/PluginProcessor.cpp
+        Source/plugin/PluginProcessor.h
+        Source/plugin/PluginEditor.cpp
+        Source/plugin/PluginEditor.h
+
+        Source/params/ParamLayout.cpp
+        Source/params/ParamLayout.h
+        Source/params/ParameterIDs.h
+
+        Source/dsp/VoiceManager.h
+        Source/dsp/Voice.h
+        Source/dsp/voices/VoiceA.h
+        Source/dsp/oscillators/OscillatorA.h
+        Source/dsp/envelopes/EnvelopeA.h
+
+        Source/gui/VoiceGUI.h
+        Source/gui/MasterGUI.h
+
+        Source/utils/Logger.h
+        Source/utils/MathHelpers.h
 )
 
 target_sources(MIDIControl001
@@ -59,7 +81,7 @@ target_sources(MIDIControl001
 
         # utils
         Source/utils/Logger.h
-        Source/utils/MathHelpers.h
+         Source/utils/MathHelpers.h
 )
 
 juce_generate_juce_header(MIDIControl001)

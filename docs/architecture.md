@@ -32,6 +32,16 @@ but differ in *who owns the main loop* and *who calls `processBlock()`*.
 
 ### Module Dependencies
 
+JUCE’s build system (through `juce_add_plugin`) always builds at least one binary that must contain a function:
+```cpp
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
+```
+That function’s only job is to construct an instance of the `AudioProcessor` subclass. If it doesn’t exist, the final linker stage (for both Standalone and VST3 targets) fails, because JUCE’s internal client code calls:
+```cpp
+extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
+```
+A JUCE plugin doesn’t have to do anything musically in order to build, but this symbol must exist.
+
 ```text
 Host (DAW / Standalone / CLI)
  ├─ calls → PluginProcessor.cpp  ← (real-time audio loop)
