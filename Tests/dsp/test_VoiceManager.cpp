@@ -2,7 +2,9 @@
 #include <catch2/catch_approx.hpp>
 using Catch::Approx;
 
+#include "utils/dsp_metrics.h"
 #include "dsp/VoiceManager.h"
+#include <filesystem>
 
 TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
     VoiceManager mgr;
@@ -24,6 +26,16 @@ TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
     // buffer should contain nonzero samples
     REQUIRE(std::any_of(buffer.begin(), buffer.end(),
                         [](float x) { return std::fabs(x) > 0.0f; }));
+
+    auto hash = hashBuffer(buffer);        // any stable hash fn
+    auto rms  = computeRMS(buffer);
+    auto peak = computePeak(buffer);
+    std::cout << "[DEBUG] calling writeJson()\n";
+    namespace fs = std::filesystem;
+
+    auto jsonPath = fs::path(__FILE__).parent_path()
+                    / ".." / "baseline" / "voice_output_reference.json";
+    writeJson(jsonPath.string(), hash, rms, peak);
 
     // trigger note offs
     mgr.handleNoteOff(60);

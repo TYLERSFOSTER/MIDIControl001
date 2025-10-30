@@ -19,6 +19,17 @@ file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"   # ensure our custom main is built
 )
 
+# ============================================================
+# nlohmann_json single-header library
+# ============================================================
+include(FetchContent)
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_executable(MIDIControl001_tests ${TEST_SOURCES})
 
 # ============================================================
@@ -26,6 +37,8 @@ add_executable(MIDIControl001_tests ${TEST_SOURCES})
 # ============================================================
 target_include_directories(MIDIControl001_tests PRIVATE
   ${PROJECT_SOURCE_DIR}/Source
+  ${PROJECT_SOURCE_DIR}/Tests
+  ${PROJECT_SOURCE_DIR}/Tests/utils
   ${CMAKE_BINARY_DIR}/MIDIControl001_artefacts/JuceLibraryCode
 )
 
@@ -53,6 +66,7 @@ target_compile_definitions(MIDIControl001_tests PRIVATE
 # ============================================================
 target_link_libraries(MIDIControl001_tests PRIVATE
   Catch2::Catch2
+  nlohmann_json::nlohmann_json
   juce::juce_audio_utils
   juce::juce_audio_processors
   juce::juce_audio_basics
