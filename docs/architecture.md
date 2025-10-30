@@ -1,5 +1,7 @@
 # Plugin Design / Architecture
 
+See the full overview in [README.md](../README.md).
+
 ## Overview
 
 ### System Overview (High-Level)
@@ -353,6 +355,18 @@ end
 DSP-->>Proc: output using smoothed control value
 Note over Proc,DSP: ensures smooth automation & avoids zipper noise
 ```
+
+| Field / Concept             | Type / Example                                  | Time Scale                  | Description                                                                                                                                      |
+| --------------------------- | ----------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Target Value**            | `float target` (e.g. 0.75 for gain)             | Block-level                 | The most recent parameter value read from the APVTS atomics at the start of `processBlock()` and passed into `SmoothedValue::setTargetValue()` . |
+| **Current Value**           | `float current`                                 | Sample-level                | The internal state of `SmoothedValue`; updated every `getNextValue()` call to interpolate between `current` and `target`.                        |
+| **Ramp Length**             | `int numSamples` or `float seconds`             | Configurable (e.g. 5–20 ms) | Duration of the smoothing transition; controls perceived responsiveness vs stability.                                                            |
+| **Smoothing Type**          | `Linear` (default) | `Exponential` (log-domain) | Per-sample                  | Interpolation curve type. Linear suits amplitude; Exponential suits frequency or dB parameters.                                                  |
+| **Update Rate**             | 1 × per sample                                  | Realtime                    | `SmoothedValue::getNextValue()` is called inside the DSP inner loop, producing one interpolated value per sample.                                |
+| **Block Boundary Behavior** | Deterministic                                   | Block-level                 | If the ramp is incomplete when the next block begins, `SmoothedValue` continues seamlessly into the next block—no zipper discontinuities.        |
+| **Thread Safety**           | Lock-free                                       | Always                      | All target updates occur on the audio thread; GUI writes to APVTS atomics only. No mutexes or allocations.                                       |
+| **Typical Uses**            | Gain, cutoff, pitch bend, envelope depth        | —                           | Prevents pops/clicks when automation or GUI moves rapidly.                                                                                       |
+
 
 #### C3: Voice GUI Switching — Dynamic Binding Between GUI and DSP
 ```mermaid

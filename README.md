@@ -6,10 +6,13 @@
   </picture>
 </p>
 
-# MIDI Control #001
+# MIDI Control #1
 MIDI synth voice plugin using the JUCE C++ framework
 
-# Next design steps: Individual voices/UIs
+See the full design document in [architecture.md](docs/architecture.md).
+
+
+## Next design steps: Individual voices/UIs
 
 | Phase                                 | Objective                                                                                                                                                     | Deliverable                                                              |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
