@@ -4,7 +4,8 @@
 #include <memory>
 #include <algorithm>
 #include "dsp/BaseVoice.h"
-#include "dsp/Voice.h"
+#include "dsp/voices/VoiceA.h"
+#include "dsp/BaseVoice.h"
 
 class VoiceManager {
 public:
@@ -14,7 +15,7 @@ public:
         voices_.clear();
         voices_.reserve(maxVoices);
         for (int i = 0; i < maxVoices; ++i) {
-            auto v = std::make_unique<VoiceLegacy>();
+            auto v = std::make_unique<VoiceA>();
             v->prepare(sampleRate);
             voices_.push_back(std::move(v));
         }
