@@ -1,6 +1,90 @@
 # Plugin Design / Architecture
 
-## ?
+## Overview
+
+### System Overview (High-Level)
+
+```mermaid
+graph TD
+    subgraph Host_Layer["Host Layer"]
+        HOST["Host (DAW / Standalone / CLI)"]
+    end
+
+    subgraph GUI_Thread["GUI / Host Thread"]
+        GUI["PluginEditor / VoiceGUI"]
+        APVTS["AudioProcessorValueTreeState (State Store)"]
+    end
+
+    subgraph Audio_Thread["Audio Thread — per block"]
+        PROC["PluginProcessor"]
+        SNAP["ParameterSnapshot (struct)"]
+        VM["VoiceManager"]
+        V2["Voice #2"]
+        DSP1["OscillatorA + EnvelopeA"]
+        DSP2["OscillatorA + EnvelopeA"]
+        BUFFER["AudioBuffer<float>"]
+    end
+
+    %% Control flow
+    GUI -- "user edits knob / automation" --> APVTS
+    APVTS -- "atomic<float> read per block" --> SNAP
+    SNAP -- "copied @processBlock begin" --> PROC
+    PROC -- "passes snapshot" --> VM
+    VM -- "on noteOn(): copy params into voice" --> V1
+    VM -- "on noteOn(): copy params into voice" --> V2
+    V1 --> DSP1
+    V2 --> DSP2
+
+    %% Audio flow
+    HOST -- "MIDI / Audio" --> PROC
+    PROC -- "delegates processing" --> VM
+    DSP1 -- "generate samples" --> VM
+    DSP2 -- "generate samples" --> VM
+    VM -->|mixdown| BUFFER
+    BUFFER --> HOST
+
+    %% Feedback
+    DSP1 -- "meters / waveform data" --> GUI
+    DSP2 -- "meters / waveform data" --> GUI
+```
+
+### Internal Dataflow (Developer-Level)
+
+```mermaid
+graph TD
+    subgraph GUI_Thread["GUI / Host Thread"]
+        GUI["PluginEditor / VoiceGUI"]
+        APVTS["AudioProcessorValueTreeState (ValueTree + Atomics)"]
+    end
+
+    subgraph Audio_Thread["Audio Thread — per block"]
+        PROC["PluginProcessor"]
+        SNAP["ParameterSnapshot (struct)"]
+        VM["VoiceManager"]
+        V1["Voice #1"]
+        V2["Voice #2"]
+        DSP1["Oscillator + Envelope (per-voice DSP)"]
+        DSP2["Oscillator + Envelope (per-voice DSP)"]
+        BUFFER["AudioBuffer<float>"]
+    end
+
+    %% Connections
+    GUI -- "user moves control" --> APVTS
+    APVTS -- "atomic<float> read per block" --> SNAP
+    SNAP -- "copied @processBlock begin" --> PROC
+    PROC -- "passes to VoiceManager" --> VM
+    VM -- "on noteOn(): copy snapshot into voice fields" --> V1
+    VM -- "on noteOn(): copy snapshot into voice fields" --> V2
+    V1 --> DSP1
+    V2 --> DSP2
+    DSP1 -- "generate audio samples" --> VM
+    DSP2 -- "generate audio samples" --> VM
+    VM -->|mixdown| BUFFER
+
+    %% Visualization feedback
+    DSP1 -- "analysis / level data" --> GUI
+    DSP2 -- "analysis / level data" --> GUI
+```
 
 ### Runtime Context — Host Environments
 
@@ -13,6 +97,37 @@ Depending on how the plugin is built or launched, the *host* can be:
 
 All three call the same `PluginProcessor` and optional `PluginEditor`,  
 but differ in *who owns the main loop* and *who calls `processBlock()`*.
+
+#### Initialization / Shutdown Sequence
+
+```mermaid
+sequenceDiagram
+participant Host as Host
+participant JUCE as JUCE Framework
+participant Processor as PluginProcessor
+participant VM as VoiceManager
+participant GUI as PluginEditor
+
+Note over Host,Processor: Plugin creation
+Host->>JUCE: load plugin binary
+JUCE->>Processor: createPluginFilter()
+Processor->>VM: initialize voice pool,<br/>allocate resources
+Processor->>Processor: create APVTS
+Processor-->>JUCE: return AudioProcessor
+
+Note over Host,GUI: GUI creation
+Host->>JUCE: request editor
+JUCE->>Processor: createEditor()
+Processor->>GUI: construct PluginEditor
+GUI-->>JUCE: return editor component
+
+Note over Host,Processor: Plugin destruction
+Host->>JUCE: close plugin
+JUCE->>GUI: destroy editor
+JUCE->>Processor: release resources
+Processor->>VM: free voices, buffers
+Processor-->>JUCE: cleanup complete
+```
 
 #### Host responsibilities
 
@@ -93,11 +208,11 @@ participant PluginProcessor as PluginProcessor.cpp/.h
 participant ValueTree as State store
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
-participant DSP as Oscillator.h + Envelope.h
+participant DSP as DSP Module
 
 Note over PluginProcessor,DSP: Internal processing (DSP) — Voice allocation + start
-Note over VoiceManager,DSP: Audio/Synthesis Engine
-Note over PluginProcessor,ValueTree: Audio/Synthesis Engine Controller
+Note over VoiceManager,DSP: Plugin Audio/Synthesis Engine
+Note over PluginProcessor,ValueTree: Plugin Audio/Synthesis Engine Controller
 PluginProcessor->>ValueTree: read ADSR parameters
 PluginProcessor->>VoiceManager: allocate Voice for note (Factory)
 VoiceManager->>Voice: init. w/ ADSR params
@@ -141,8 +256,8 @@ participant Voice as Voice.h
 participant DSP as Envelope.h + Oscillator.h
 
 Note over PluginProcessor,DSP: Internal processing (DSP) — release + cleanup
-Note over VoiceManager,DSP: Audio/Synthesis Engine
-Note over PluginProcessor,ValueTree: Audio/Synthesis Engine Controller
+Note over VoiceManager,DSP: Plugin Audio/Synthesis Engine
+Note over PluginProcessor,ValueTree: Plugin Audio/Synthesis Engine Controller
 PluginProcessor->>ValueTree: read release parameter
 PluginProcessor->>VoiceManager: locate Voice for note
 VoiceManager->>Voice: trigger note release
@@ -203,7 +318,7 @@ participant Processor as PluginProcessor.cpp/.h
 participant APVTS as State store
 participant VoiceManager as VoiceManager.h
 participant Voice as Voice.h
-participant DSP as Oscillator.h + Envelope.h
+participant DSP as DSP Module
 
 Note over Processor,DSP: Internal flow — smoothing + parameter propagation
 Processor->>APVTS: read current values
@@ -218,6 +333,26 @@ Note over Processor: steady state til update
 ```
 
 Returns to: [C1: Parameter Update — External Interface](#c1-parameter-update--external-interface)
+
+#### Parameter Smoothing Sequence
+```mermaid
+sequenceDiagram
+participant APVTS as State store
+participant Proc as PluginProcessor
+participant Smooth as SmoothedValue
+participant DSP as DSP Module
+
+Note over APVTS,Proc: parameter update
+APVTS->>Proc: new target value
+Proc->>Smooth: setTargetValue
+Note right of Smooth: stores target and<br/>computes ramp increment
+loop per sample
+    Smooth->>Smooth: getNextValue()
+    Smooth-->>DSP: smoothed parameter
+end
+DSP-->>Proc: output using smoothed control value
+Note over Proc,DSP: ensures smooth automation & avoids zipper noise
+```
 
 #### C3: Voice GUI Switching — Dynamic Binding Between GUI and DSP
 ```mermaid
@@ -243,6 +378,126 @@ VoiceGUI->>APVTS: bind controls
 APVTS-->>Processor: param's sync'ed
 Processor-->>VoiceManager: DSP using new voice
 Note over GUIHost,Processor: GUI and DSP now share state through State store
+```
+
+## Parameter Propagation (Voice Lifecycle)
+
+### ?
+
+```mermaid
+graph TD
+    subgraph GUI_Thread["GUI / Host Thread"]
+        APVTS["AudioProcessorValueTreeState (ValueTree + Atomics)"]
+    end
+
+    subgraph Audio_Thread["Audio Thread — per block"]
+        SNAP["ParameterSnapshot (struct)"]
+        VM["VoiceManager"]
+        V1["Voice #1"]
+        V2["Voice #2"]
+        DSP1["Oscillator + Envelope (per-voice DSP)"]
+        DSP2["Oscillator + Envelope (per-voice DSP)"]
+    end
+
+    %% connections
+    APVTS -- "atomic<float> read per block\n(block start)" --> SNAP
+    SNAP -- "copied (stack-level)\n@processBlock begin" --> VM
+    VM -- "on noteOn(): copy snapshot\ninto voice fields" --> V1
+    VM -- "on noteOn(): copy snapshot\ninto voice fields" --> V2
+    V1 --> DSP1
+    V2 --> DSP2
+    DSP1 -- "generate audio samples" --> VM
+    DSP2 -- "generate audio samples" --> VM
+    VM -->|mixdown| SNAP
+```
+
+### Where copies happen
+| Copy Boundary                  | Source → Target                            | Frequency           | Purpose                             |
+| ------------------------------ | ------------------------------------------ | ------------------- | ----------------------------------- |
+| **A. APVTS → Snapshot**        | GUI thread atomics → audio-thread struct   | once per block      | Create real-time-safe snapshot      |
+| **B. Snapshot → VoiceManager** | stack → manager member                     | once per block      | Pass consistent params to allocator |
+| **C. VoiceManager → Voice**    | snapshot → voice local copy                | once per noteOn     | Freeze per-note parameters          |
+| **D. Voice → DSP modules**     | voice fields → oscillator/envelope members | once per note start | Initialize actual DSP behavior      |
+
+### Time Boundaries
+| Layer          | Time Scale      | Data Ownership           | Notes                   |
+| -------------- | --------------- | ------------------------ | ----------------------- |
+| GUI / Host     | Asynchronous    | `APVTS` (shared atomics) | user tweaks, automation |
+| AudioProcessor | Block-granular  | `ParameterSnapshot`      | stable per-block        |
+| VoiceManager   | Block-granular  | `currentParams` copy     | consistent allocator    |
+| Voice / DSP    | Sample-granular | local floats             | realtime, no locks      |
+
+### Parameter Snapshot vs. MIDI Events (within a single block)
+```mermaid
+sequenceDiagram
+    participant GUI as Automation
+    participant APVTS as Atomic store
+    participant Proc as PluginProcessor
+    participant VM as VoiceManager
+    participant V as Voice (DSP)
+
+    Note over GUI,APVTS: GUI slider or DAW automation<br/>updates atomics (non-realtime)
+    GUI->>APVTS: write new value
+
+    Note over APVTS,Proc: Next audio block begins
+    Proc->>APVTS: parameter fetch
+    APVTS-->>Proc: current values
+    Proc->>Proc: build ParameterSnapshot struct
+
+    Note right of Proc: snapshot frozen<br/>for this block
+
+    Proc->>VM: startBlock(snapshot)
+    Proc->>VM: handle MIDI events
+
+    alt NoteOn event
+        VM->>V: allocate or<br/>steal voice
+        V->>V: init osc + env with<br/>copied params
+    end
+
+    loop each sample
+        V->>V: compute sample
+        V-->>VM: return sample
+    end
+
+    VM-->>Proc: mixed audio buffer
+```
+
+### Parameter Update Pipeline
+
+```mermaid
+graph TD
+    subgraph GUI_Thread["GUI / Host Thread"]
+        GUI["PluginEditor / VoiceGUI"]
+        APVTS["AudioProcessorValueTreeState (ValueTree + Atomics)"]
+    end
+
+    subgraph Audio_Thread["Audio Thread — per block"]
+        PROC["PluginProcessor"]
+        SNAP["ParameterSnapshot (struct)"]
+        VM["VoiceManager"]
+        V1["Voice #1"]
+        V2["Voice #2"]
+        DSP1["OscillatorA + EnvelopeA"]
+        DSP2["OscillatorA + EnvelopeA"]
+    end
+
+    %% Control flow from GUI/Host
+    GUI -- "user moves control (knob, slider)" --> APVTS
+    APVTS -- "automation / MIDI CC / host automation" --> PROC
+    PROC -- "read atomics once per block" --> SNAP
+    SNAP -- "copied @processBlock begin" --> VM
+    VM -- "update active voices" --> V1
+    VM -- "update active voices" --> V2
+    V1 --> DSP1
+    V2 --> DSP2
+
+    %% Internal propagation
+    DSP1 -- "apply smoothed params\n(per-sample)" --> DSP1
+    DSP2 -- "apply smoothed params\n(per-sample)" --> DSP2
+
+    %% Feedback reflection
+    DSP1 -- "meter / visual data" --> GUI
+    DSP2 -- "waveform / visual data" --> GUI
 ```
 
 ## GUI
@@ -308,22 +563,46 @@ GUI->>GUI: redraw control with new value
 
 ➡ This is the reverse flow — parameters change in the engine, and the GUI follows.
 
-#### G3: Visualization Refresh (DSP → GUI)
-
+#### G3: Visualization Feedback Loop
 This process handles continuous data visualization (waveform preview, envelopes, levels, etc.).
 Because the GUI thread can’t directly read DSP memory, this requires a shared lock-free buffer or atomic handoff.
 
 ```mermaid
 sequenceDiagram
-participant DSP as Audio Engine
+participant DSP as DSP Engine
 participant Shared as LockFreeBuffer / Atomic<float>
-participant GUI as PluginEditor.cpp/.h (Visualizer)
+participant GUI as PluginEditor (Visualizer)
 
-Note over DSP,GUI: Real-time safe visualization update
-DSP->>Shared: write current level / waveform snapshot
-GUI->>Shared: read on timer callback (non-realtime)
-Shared-->>GUI: latest display data
-GUI->>GUI: repaint visualization
+Note over DSP,GUI: Continuous meter or waveform visualization
+loop each block
+    DSP->>Shared: write current level / RMS / waveform sample
+end
+loop GUI timer callback (~30–60 Hz)
+    GUI->>Shared: read latest values
+    Shared-->>GUI: current snapshot
+    GUI->>GUI: repaint visualization
+end
+Note over DSP,GUI: Non-blocking data exchange — real-time safe
 ```
 
 ➡ This is custom logic, separate from the APVTS — used for meters, scopes, oscillators, etc.
+
+## Processor
+
+```mermaid
+sequenceDiagram
+participant Host
+participant PluginProcessor
+participant APVTS as State store
+participant VM as VoiceManager
+participant Buffer as AudioBuffer<float>
+
+Host->>PluginProcessor: processBlock(buffer, midi)
+PluginProcessor->>APVTS: read atomics
+PluginProcessor->>PluginProcessor: build ParameterSnapshot
+PluginProcessor->>VM: startBlock(snapshot)
+PluginProcessor->>VM: handle MIDI events (note on/off)
+PluginProcessor->>VM: render(buffer, numSamples)
+VM-->>Buffer: to buffer
+PluginProcessor-->>Host: return processed block
+```
