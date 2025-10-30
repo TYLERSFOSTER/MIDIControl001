@@ -1,19 +1,20 @@
 #pragma once
 #include <juce_core/juce_core.h>
+#include "dsp/BaseVoice.h"                      // ← new include
 #include "dsp/oscillators/OscillatorA.h"
 #include "dsp/envelopes/EnvelopeA.h"
 #include "params/ParameterSnapshot.h"
 #include <cmath>
 
-class Voice {
+class VoiceLegacy : public BaseVoice {
 public:
-    void prepare(double sampleRate)
+    void prepare(double sampleRate) override
     {
         osc_.prepare(sampleRate);
         env_.prepare(sampleRate);
     }
 
-    void noteOn(const ParameterSnapshot& snapshot, int midiNote, float velocity)
+    void noteOn(const ParameterSnapshot& snapshot, int midiNote, float velocity) override
     {
         const float freqHz = snapshot.oscFreq > 0.f
             ? snapshot.oscFreq
@@ -30,13 +31,13 @@ public:
         level_ = 0.0f;
     }
 
-    void noteOff() { env_.noteOff(); }
+    void noteOff() override { env_.noteOff(); }
 
-    bool isActive() const { return active_; }
+    bool isActive() const override { return active_; }
 
-    int getNote() const noexcept { return note_; }
+    int getNote() const noexcept override { return note_; }
 
-    void render(float* buffer, int numSamples)
+    void render(float* buffer, int numSamples) override
     {
         if (!active_)
             return;
@@ -67,7 +68,7 @@ public:
         DBG("Voice[" << note_ << "] still active, peak=" << blockPeak);
     }
 
-    float getCurrentLevel() const { return level_; }
+    float getCurrentLevel() const override { return level_; }
 
 private:
     OscillatorA osc_;
@@ -76,3 +77,6 @@ private:
     int   note_   = -1;
     float level_  = 0.0f;
 };
+
+// ⚠️ Temporary alias to keep all existing tests compiling
+using Voice = VoiceLegacy;
