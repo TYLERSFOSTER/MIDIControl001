@@ -4,6 +4,8 @@ project(MIDIControl001 VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+cmake_policy(SET CMP0175 OLD)
+
 include(FetchContent)
 
 # ============================================================
@@ -47,6 +49,7 @@ juce_add_plugin(MIDIControl001
         Source/dsp/voices/VoiceA.h
         Source/dsp/oscillators/OscillatorA.h
         Source/dsp/envelopes/EnvelopeA.h
+        Source/dsp/envelopes/EnvelopeA.cpp
 
         Source/gui/VoiceGUI.h
         Source/gui/MasterGUI.h
@@ -71,9 +74,9 @@ target_sources(MIDIControl001
         # dsp core
         Source/dsp/VoiceManager.h
         Source/dsp/Voice.h
-        Source/dsp/voices/VoiceA.h
         Source/dsp/oscillators/OscillatorA.h
         Source/dsp/envelopes/EnvelopeA.h
+        Source/dsp/envelopes/EnvelopeA.cpp
 
         # gui
         Source/gui/VoiceGUI.h
@@ -93,6 +96,12 @@ target_link_libraries(MIDIControl001
         juce::juce_audio_basics
         juce::juce_gui_basics
         juce::juce_dsp
+)
+
+# Make headers under Source/ available as "plugin/...", "params/...", etc.
+target_include_directories(MIDIControl001
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/Source
 )
 
 # ============================================================

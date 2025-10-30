@@ -1,0 +1,63 @@
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
+using Catch::Approx;
+
+#include "dsp/VoiceManager.h"
+
+TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
+    VoiceManager mgr;
+    ParameterSnapshot snap;
+    snap.oscFreq = 220.0f;
+    snap.envAttack = 0.001f;
+    snap.envRelease = 0.05f;
+
+    mgr.prepare(44100.0);
+    mgr.startBlock(snap);
+
+    // trigger two notes
+    mgr.handleNoteOn(60, 1.0f);
+    mgr.handleNoteOn(64, 1.0f);
+
+    std::vector<float> buffer(256, 0.0f);
+    mgr.render(buffer.data(), (int)buffer.size());
+
+    // buffer should contain nonzero samples
+    REQUIRE(std::any_of(buffer.begin(), buffer.end(),
+                        [](float x) { return std::fabs(x) > 0.0f; }));
+
+    // trigger note offs
+    mgr.handleNoteOff(60);
+    mgr.handleNoteOff(64);
+
+    // let envelopes decay
+    for (int i = 0; i < 4410; ++i) {
+        float tmp[1] = {0.0f};
+        mgr.render(tmp, 1);
+    }
+
+    // everything should be released
+    std::vector<float> silent(128, 0.0f);
+    mgr.render(silent.data(), (int)silent.size());
+    bool allSilent = std::all_of(silent.begin(), silent.end(),
+                                 [](float x) { return std::fabs(x) < 1e-5f; });
+    REQUIRE(allSilent);
+}
+
+TEST_CASE("VoiceManager voice stealing", "[voicemanager]") {
+    VoiceManager mgr;
+    ParameterSnapshot snap;
+    mgr.prepare(44100.0);
+    mgr.startBlock(snap);
+
+    // fill all voices
+    for (int i = 0; i < VoiceManager::maxVoices; ++i)
+        mgr.handleNoteOn(40 + i, 1.0f);
+
+    // add one more note — should steal quietest
+    mgr.handleNoteOn(100, 1.0f);
+
+    std::vector<float> buf(64, 0.0f);
+    mgr.render(buf.data(), (int)buf.size());
+    REQUIRE(std::any_of(buf.begin(), buf.end(),
+                        [](float x) { return std::fabs(x) > 0.0f; }));
+}
