@@ -50,6 +50,11 @@ ParameterSnapshot MIDIControl001AudioProcessor::makeSnapshotFromParams() const
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envAttack))    s.envAttack      = p->load();
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envRelease))   s.envRelease     = p->load();
 
+    DBG("Snapshot built: vol=" << s.masterVolumeDb
+        << " mix=" << s.masterMix
+        << " atk=" << s.envAttack
+        << " rel=" << s.envRelease);
+
     return s;
 }
 
@@ -75,6 +80,19 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     for (const auto metadata : midi)
     {
         const auto msg = metadata.getMessage();
+
+        // ---- diagnostics ----
+        DBG("MIDI message: " << msg.getDescription());
+
+        if (msg.isNoteOn())
+            DBG("  NoteOn  #" << msg.getNoteNumber()
+                << " → freq=" << 440.0f * std::pow(2.0f, (msg.getNoteNumber() - 69) / 12.0f));
+
+        if (msg.isController())
+            DBG("  Controller #" << msg.getControllerNumber()
+                << " value=" << msg.getControllerValue());
+        // ----------------------
+
         if      (msg.isNoteOn())  voiceManager_.handleNoteOn (msg.getNoteNumber(), msg.getFloatVelocity());
         else if (msg.isNoteOff()) voiceManager_.handleNoteOff(msg.getNoteNumber());
     }
@@ -124,3 +142,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new MIDIControl001AudioProcessor();
 }
+

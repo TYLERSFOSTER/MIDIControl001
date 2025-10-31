@@ -16,9 +16,17 @@ public:
 
     void noteOn(const ParameterSnapshot& snapshot, int midiNote, float velocity) override
     {
-        const float freqHz = snapshot.oscFreq > 0.f
+        const float defaultFreq = 440.0f;
+        const float midiFreq = defaultFreq * std::pow(2.0f, (midiNote - 69) / 12.0f);
+
+        // use snapshot only if user actually moved that parameter
+        const float freqHz = std::fabs(snapshot.oscFreq - defaultFreq) > 1e-3f
             ? snapshot.oscFreq
-            : 440.0f * std::pow(2.0f, (midiNote - 69) / 12.0f);
+            : midiFreq;
+
+        DBG("VoiceA::noteOn -> midiNote=" << midiNote
+            << " snapshot.oscFreq=" << snapshot.oscFreq
+            << "  => freqHz=" << freqHz);
 
         osc_.setFrequency(freqHz);
         env_.setAttack(snapshot.envAttack);
