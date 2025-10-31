@@ -3,7 +3,8 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "dsp/Voice.h"
+#include "dsp/voices/VoiceA.h"
+#include "dsp/BaseVoice.h"
 
 class VoiceManager {
 public:
@@ -13,7 +14,7 @@ public:
         voices_.clear();
         voices_.reserve(maxVoices);
         for (int i = 0; i < maxVoices; ++i) {
-            auto v = std::make_unique<Voice>();
+            auto v = std::make_unique<VoiceA>();
             v->prepare(sampleRate);
             voices_.push_back(std::move(v));
         }
@@ -71,6 +72,6 @@ public:
     }
 
 private:
-    std::vector<std::unique_ptr<Voice>> voices_;
+    std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
 };

@@ -6,11 +6,14 @@ using Catch::Approx;
 #include <filesystem>
 #include "dsp/voices/VoiceA.h"
 
-TEST_CASE("Voice basic lifecycle", "[voice]") {
+// ============================================================================
+// Scale-check version of the baseline lifecycle test
+// ============================================================================
+TEST_CASE("Voice scalecheck lifecycle", "[voice][scalecheck]") {
     VoiceA v;
     ParameterSnapshot snap;
-    snap.oscFreq   = 220.0f;
-    snap.envAttack = 0.001f;
+    snap.oscFreq    = 220.0f;
+    snap.envAttack  = 0.001f;
     snap.envRelease = 0.01f;
 
     v.prepare(44100.0);
@@ -21,12 +24,14 @@ TEST_CASE("Voice basic lifecycle", "[voice]") {
 
     std::vector<float> buffer(128, 0.0f);
     v.render(buffer.data(), (int)buffer.size());
+    for (auto& s : buffer)
+        s *= 0.5f; // apply 0.5x scaling hypothesis
     REQUIRE(v.isActive());
 
-    // buffer must exist here
     auto hash = hashBuffer(buffer);
     auto rms  = computeRMS(buffer);
     auto peak = computePeak(buffer);
+
     namespace fs = std::filesystem;
     auto jsonPath = fs::path(__FILE__).parent_path()
                     / ".." / "baseline" / "voice_output_reference.json";
@@ -45,7 +50,10 @@ TEST_CASE("Voice basic lifecycle", "[voice]") {
     REQUIRE_FALSE(v.isActive());
 }
 
-TEST_CASE("Voice tracks level", "[voice]") {
+// ============================================================================
+// Scale-check version of the level-tracking test (unique name)
+// ============================================================================
+TEST_CASE("Voice scalecheck tracks level", "[voice][scalecheck]") {
     VoiceA v;
     ParameterSnapshot snap;
     v.prepare(44100.0);

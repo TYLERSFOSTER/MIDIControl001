@@ -12,7 +12,7 @@ MIDI synth voice plugin using the JUCE C++ framework
 See the full design document in [architecture.md](docs/architecture.md).
 
 
-## Next design steps: Individual voices/UIs
+## Last design steps: Individual voices/UIs
 
 | Phase                                 | Objective                                                                                                                                                     | Deliverable                                                              |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -32,3 +32,5 @@ See the full design document in [architecture.md](docs/architecture.md).
 | **4** | Update `VoiceManager` to use `BaseVoice` pointers, but still hard-create `VoiceA`.                                                        | Extend `test_VoiceManager.cpp` with polymorphic instantiation test (ensure virtual dispatch works).                                         | Prevents allocation or type-casting regressions. |
 | **5** | Add `InstrumentRegistry` with `"voiceA"` entry.                                                                                           | Add `test_InstrumentRegistry.cpp` verifying that `makeVoice("voiceA")` returns a working instance.                                          | Locks down factory behavior early.               |
 | **6** | Remove `VoiceLegacy`. All old tests should pass.                                                                                          | Run full `ctest`.                                                                                                                           | Confirms parity with pre-refactor output.        |
+
+## Next design steps: Fix MPK Mini knob failure, fix GUI slider issues.
