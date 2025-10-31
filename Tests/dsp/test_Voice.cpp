@@ -3,11 +3,11 @@
 using Catch::Approx;
 
 #include "utils/dsp_metrics.h"
-#include "dsp/Voice.h"
 #include <filesystem>
+#include "dsp/voices/VoiceA.h"
 
 TEST_CASE("Voice basic lifecycle", "[voice]") {
-    Voice v;
+    VoiceA v;
     ParameterSnapshot snap;
     snap.oscFreq   = 220.0f;
     snap.envAttack = 0.001f;
@@ -27,13 +27,12 @@ TEST_CASE("Voice basic lifecycle", "[voice]") {
     auto hash = hashBuffer(buffer);
     auto rms  = computeRMS(buffer);
     auto peak = computePeak(buffer);
-    std::cout << "[DEBUG] calling writeJson()\n";
     namespace fs = std::filesystem;
-
     auto jsonPath = fs::path(__FILE__).parent_path()
                     / ".." / "baseline" / "voice_output_reference.json";
-    writeJson(jsonPath.string(), hash, rms, peak);
 
+    bool ok = compareWithBaseline(jsonPath.string(), hash, rms, peak);
+    REQUIRE(ok);
 
     REQUIRE(std::any_of(buffer.begin(), buffer.end(),
                         [](float x) { return std::fabs(x) > 0.0f; }));
@@ -47,7 +46,7 @@ TEST_CASE("Voice basic lifecycle", "[voice]") {
 }
 
 TEST_CASE("Voice tracks level", "[voice]") {
-    Voice v;
+    VoiceA v;
     ParameterSnapshot snap;
     v.prepare(44100.0);
     v.noteOn(snap, 69, 1.0f);

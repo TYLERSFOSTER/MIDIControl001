@@ -3,7 +3,6 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include "dsp/BaseVoice.h"
 #include "dsp/voices/VoiceA.h"
 #include "dsp/BaseVoice.h"
 

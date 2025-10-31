@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include "dsp/BaseVoice.h"
-#include "dsp/Voice.h"
+#include "dsp/voices/VoiceA.h"
 
 TEST_CASE("BaseVoice interface compiles", "[basevoice]") {
-    BaseVoice* v = new Voice();
+    BaseVoice* v = new VoiceA();
     v->prepare(44100.0);
     v->noteOn(ParameterSnapshot{}, 60, 1.0f);
     v->noteOff();

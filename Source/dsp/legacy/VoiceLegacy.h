@@ -77,6 +77,3 @@ private:
     int   note_   = -1;
     float level_  = 0.0f;
 };
-
-// ⚠️ Temporary alias to keep all existing tests compiling
-using Voice = VoiceLegacy;
