@@ -5,9 +5,15 @@
 #include <algorithm>
 #include "dsp/voices/VoiceA.h"
 #include "dsp/BaseVoice.h"
+#include "params/ParamLayout.h"
 
 class VoiceManager {
 public:
+    using SnapshotMaker = std::function<ParameterSnapshot(void)>; // callback type
+
+    explicit VoiceManager(SnapshotMaker makeSnapshot)
+        : makeSnapshot_(std::move(makeSnapshot)) {}
+
     static constexpr int maxVoices = 32;
 
     void prepare(double sampleRate) {
@@ -23,8 +29,22 @@ public:
             " voices at " + juce::String(sampleRate));
     }
 
-    void startBlock(const ParameterSnapshot& snapshot) {
+    void startBlock() {
+        static ParameterSnapshot snapshot;      // re-use each block
+        snapshot = makeSnapshot_();             // ← pull live params
+
         currentSnapshot_ = &snapshot;
+
+        // ============================================================
+        // Pass per-voice params to all voices (safe even if inactive)
+        // ============================================================
+        for (int i = 0; i < static_cast<int>(voices_.size()) && i < NUM_VOICES; ++i)
+        {
+            if (auto* voiceA = dynamic_cast<VoiceA*>(voices_[i].get()))
+            {
+                voiceA->updateParams(snapshot.voices[i]);
+            }
+        }
     }
 
     void handleNoteOn(int midiNote, float velocity) {
@@ -74,4 +94,6 @@ public:
 private:
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
+
+SnapshotMaker makeSnapshot_;  // stored callback
 };

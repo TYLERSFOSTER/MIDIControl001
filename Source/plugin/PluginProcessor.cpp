@@ -112,7 +112,9 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     monoScratch_.clear();
 
     const auto snap = makeSnapshotFromParams();
-    voiceManager_.startBlock(snap);
+    voiceManager = std::make_unique<VoiceManager>(
+        [this]() { return makeSnapshotFromParams(*apvts_); }
+    );
 
     for (const auto metadata : midi)
     {
