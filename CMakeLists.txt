@@ -46,6 +46,7 @@ juce_add_plugin(MIDIControl001
 
         Source/dsp/VoiceManager.h
         Source/dsp/voices/VoiceA.h
+        Source/dsp/voices/VoiceA.cpp
         Source/dsp/oscillators/OscillatorA.h
         Source/dsp/envelopes/EnvelopeA.h
         Source/dsp/envelopes/EnvelopeA.cpp
@@ -75,6 +76,7 @@ target_sources(MIDIControl001
         Source/dsp/oscillators/OscillatorA.h
         Source/dsp/envelopes/EnvelopeA.h
         Source/dsp/envelopes/EnvelopeA.cpp
+        Source/dsp/voices/VoiceA.cpp
 
         # gui
         Source/gui/VoiceGUI.h

@@ -49,6 +49,7 @@ target_sources(MIDIControl001_tests PRIVATE
   ${PROJECT_SOURCE_DIR}/Source/params/ParamLayout.cpp
   ${PROJECT_SOURCE_DIR}/Source/plugin/PluginProcessor.cpp
   ${PROJECT_SOURCE_DIR}/Source/dsp/envelopes/EnvelopeA.cpp
+  ${PROJECT_SOURCE_DIR}/Source/dsp/voices/VoiceA.cpp
 )
 
 # ============================================================
