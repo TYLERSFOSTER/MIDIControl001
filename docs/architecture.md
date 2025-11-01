@@ -601,6 +601,121 @@ Note over DSP,GUI: Non-blocking data exchange — real-time safe
 
 ➡ This is custom logic, separate from the APVTS — used for meters, scopes, oscillators, etc.
 
+## Voice types
+
+### Voice type instance
+
+- Created for one active MIDI note.
+
+- Receives its base pitch (noteNumber → Hz) and the current VoiceA parameters from the snapshot.
+
+- Applies them like:
+```makefile
+frequency = midiNoteToHz(noteNumber) * snap.voiceA.oscFreqRatio
+envelope.setAttack(snap.voiceA.envAttack)
+envelope.setRelease(snap.voiceA.envRelease)
+```
+
+- After noteOn, it keeps those values frozen until noteOff.
+
+### Per voice type data flow
+
+#### Overview
+```
+[GUI sliders for VoiceA]
+        │
+        ▼
+[APVTS: "voiceA_*" parameter group]
+        │  (atomic<float> values, global per voice-type)
+        ▼
+[ParameterSnapshot]  ← frozen once per audio block
+        │
+        ▼
+[VoiceManager]
+        │  (owns all active VoiceA instances)
+        ▼
+[VoiceA instances]
+        │  (each note pressed creates one)
+        ▼
+[OscillatorA / EnvelopeA]
+```
+
+```mermaid
+sequenceDiagram
+    participant GUI as VoiceA GUI
+    participant APVTS as State store
+    participant Proc as Plugin<br/>Processor
+    participant Snap as Parameter<br/>Snapshot
+    participant VM as Voice<br/>Manager
+    participant VA as Note<br/>instances
+    participant DSP as OscillatorA<br/>+ EnvelopeA
+
+    %% GUI side
+    Note over GUI,APVTS: User moves a VoiceA control
+    GUI->>APVTS: set parameter,<br/>notifying Host
+    APVTS-->>GUI: atomics updated
+
+    %% Block boundary
+    Note over Proc,Snap: Start next block
+    Proc->>APVTS: read atomics
+    APVTS-->>Proc: current values
+    Proc->>Snap: build snapshot
+
+    %% VoiceManager receives snapshot
+    Proc->>VM: startBlock(snapshot)
+    Note right of VM: snapshot to<br/>active instances
+
+    %% Handling MIDI notes
+    VM->>VA: allocate instance
+    VA->>VA: initialize params<br/>from snapshot
+    VA->>DSP: configure
+
+    %% Audio generation
+    loop each sample
+        DSP->>VA: generate<br/>waveform<br/>and envelope
+        VA-->>VM: output samples
+    end
+    VM-->>Proc: mixed buffer returned
+
+    %% Optional GUI feedback
+    DSP-->>GUI: meter / waveform data (lock-free buffer)
+```
+
+```mermaid
+graph TD
+    subgraph GUI_Thread["GUI / Host Thread"]
+        GUI["VoiceA GUI (Sliders: Osc Freq, Env Attack, Env Release)"]
+        APVTS["AudioProcessorValueTreeState<br/>(voiceA_* parameter group)"]
+    end
+
+    subgraph Audio_Thread["Audio Thread — per block"]
+        PROC["PluginProcessor"]
+        SNAP["ParameterSnapshot.voiceA"]
+        VM["VoiceManager"]
+        VA["VoiceA instances<br/>(one per active note)"]
+        OSC["OscillatorA"]
+        ENV["EnvelopeA"]
+    end
+
+    %% Control flow from GUI to DSP
+    GUI -- "user moves control" --> APVTS
+    APVTS -- "atomic<float> read once per block" --> PROC
+    PROC -- "builds ParameterSnapshot.voiceA" --> SNAP
+    SNAP -- "passed to VoiceManager.startBlock()" --> VM
+    VM -- "injects per-voice-type params<br/>into active/new VoiceA instances" --> VA
+    VA --> OSC
+    VA --> ENV
+
+    %% Audio generation
+    OSC -- "generate waveform per sample" --> VA
+    ENV -- "shape amplitude envelope" --> VA
+    VA -- "mix to mono bus" --> VM
+    VM --> PROC
+
+    %% Optional feedback
+    VA -- "meter / waveform data" --> GUI
+```
+
 ## Processor
 
 ```mermaid
