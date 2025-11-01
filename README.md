@@ -13,8 +13,25 @@ See the full design document in [architecture.md](docs/architecture.md).
 
 ## Next engineering steps
 
-| Step                          | Goal                                                                                                    | Files likely touched                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| **1. Parameter grouping**     | Move these params under a `voiceA_` group in `ParamLayout.cpp` and `ParameterIDs.h`.                    | `Source/params/*`                             |
-| **2. Snapshot extension**     | Add `snapshot.voiceA.oscFreq / envAttack / envRelease` fields and copy from APVTS group.                | `ParameterSnapshot.h` & `PluginProcessor.cpp` |
-| **3. VoiceManager injection** | Ensure `VoiceManager::startBlock()` and `VoiceA::noteOn()` consume those snapshot values appropriately. | `VoiceManager.h`, `VoiceA.h`                  |
+### Step-by-step plan (no code edits yet)
+
+#### Unify parameter layout
+- Delete the inline `createParameterLayout()` from `PluginProcessor.cpp`.
+- Use the version from `ParamLayout.cpp`.
+
+#### Expand the snapshot struct
+- Add the `std::array<VoiceParams, NUM_VOICES>` to `ParameterSnapshot`.
+- Each `VoiceParams` holds `oscFreq`, `envAttack`, `envRelease`.
+
+#### Update `makeSnapshotFromParams()`
+- Loop over `NUM_VOICES`.
+- Read from prefixed IDs (`voices/voice1/osc/freq`, etc.).
+- Fill `snapshot.voices[i]`.
+
+#### VoiceManager `startBlock`
+- Store the snapshot.
+- For each active voice, call `voice->updateParams(snapshot.voices[index])`.
+
+#### VoiceA
+- Accept those parameters in `noteOn()` and `updateParams()`.
+- Use the existing hooks in `OscillatorA` and `EnvelopeA`.
