@@ -60,6 +60,32 @@ ParameterSnapshot MIDIControl001AudioProcessor::makeSnapshotFromParams() const
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envAttack))    s.envAttack      = p->load();
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envRelease))   s.envRelease     = p->load();
 
+    // ============================================================
+    // Per-voice parameter group reads
+    // ============================================================
+    for (int i = 0; i < NUM_VOICES; ++i)
+    {
+        VoiceParams vp;  // temporary container
+
+        const juce::String prefix = "voices/voice" + juce::String(i + 1) + "/";
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "osc/freq"))
+            vp.oscFreq = p->load();
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "env/attack"))
+            vp.envAttack = p->load();
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "env/release"))
+            vp.envRelease = p->load();
+
+        s.voices[i] = vp;
+
+        DBG("Voice" << (i + 1)
+            << " freq=" << vp.oscFreq
+            << " atk=" << vp.envAttack
+            << " rel=" << vp.envRelease);
+    }
+
     DBG("Snapshot built: vol=" << s.masterVolumeDb
         << " mix=" << s.masterMix
         << " atk=" << s.envAttack
