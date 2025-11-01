@@ -1,59 +1,11 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "params/ParameterIDs.h"
+#include "params/ParamLayout.h"
 
 static inline float ccTo01(int value)
 {
     return juce::jlimit(0.0f, 1.0f, value / 127.0f);
-}
-
-// ============================================================
-// Parameter layout definition (diagnostic version)
-// ============================================================
-
-juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
-{
-    DBG("=== Building ParameterLayout ===");
-
-    juce::AudioProcessorValueTreeState::ParameterLayout layout;
-
-    DBG("Adding parameter: masterVolume");
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        ParameterIDs::masterVolume,
-        "Master Volume",
-        juce::NormalisableRange<float>(-60.0f, 0.0f),
-        -6.0f));
-
-    DBG("Adding parameter: masterMix");
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        ParameterIDs::masterMix,
-        "Master Mix",
-        juce::NormalisableRange<float>(0.0f, 1.0f),
-        1.0f));
-
-    DBG("Adding parameter: oscFreq");
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        ParameterIDs::oscFreq,
-        "Osc Frequency",
-        juce::NormalisableRange<float>(20.0f, 20000.0f, 0.01f, 0.3f),
-        440.0f));
-
-    DBG("Adding parameter: envAttack");
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        ParameterIDs::envAttack,
-        "Env Attack",
-        juce::NormalisableRange<float>(0.001f, 2.0f),
-        0.01f));
-
-    DBG("Adding parameter: envRelease");
-    layout.add(std::make_unique<juce::AudioParameterFloat>(
-        ParameterIDs::envRelease,
-        "Env Release",
-        juce::NormalisableRange<float>(0.01f, 5.0f),
-        0.2f));
-
-    DBG("=== Done Building ParameterLayout ===");
-    return layout;
 }
 
 // ============================================================
@@ -108,6 +60,32 @@ ParameterSnapshot MIDIControl001AudioProcessor::makeSnapshotFromParams() const
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envAttack))    s.envAttack      = p->load();
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envRelease))   s.envRelease     = p->load();
 
+    // ============================================================
+    // Per-voice parameter group reads
+    // ============================================================
+    for (int i = 0; i < NUM_VOICES; ++i)
+    {
+        VoiceParams vp;  // temporary container
+
+        const juce::String prefix = "voices/voice" + juce::String(i + 1) + "/";
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "osc/freq"))
+            vp.oscFreq = p->load();
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "env/attack"))
+            vp.envAttack = p->load();
+
+        if (auto* p = apvts.getRawParameterValue(prefix + "env/release"))
+            vp.envRelease = p->load();
+
+        s.voices[i] = vp;
+
+        DBG("Voice" << (i + 1)
+            << " freq=" << vp.oscFreq
+            << " atk=" << vp.envAttack
+            << " rel=" << vp.envRelease);
+    }
+
     DBG("Snapshot built: vol=" << s.masterVolumeDb
         << " mix=" << s.masterMix
         << " atk=" << s.envAttack
@@ -134,7 +112,9 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     monoScratch_.clear();
 
     const auto snap = makeSnapshotFromParams();
-    voiceManager_.startBlock(snap);
+    voiceManager = std::make_unique<VoiceManager>(
+        [this]() { return makeSnapshotFromParams(*apvts_); }
+    );
 
     for (const auto metadata : midi)
     {

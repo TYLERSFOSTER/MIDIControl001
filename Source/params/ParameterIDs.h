@@ -10,3 +10,8 @@ namespace ParameterIDs {
     inline constexpr auto scopeEnabled    = "scope/enable";
     inline constexpr auto scopeBrightness = "scope/brightness";
 }
+
+// ============================================================
+// Voice configuration constants
+// ============================================================
+constexpr int NUM_VOICES = 3;
