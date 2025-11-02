@@ -72,6 +72,14 @@ void VoiceA::render(float* buffer, int numSamples)
         osc_.setFrequency(0.0f);
         osc_.resetPhase();
     }
+
+    // --- Diagnostic RMS check (temporary) ---
+    float rms = 0.0f;
+    for (int i = 0; i < numSamples; ++i)
+        rms += buffer[i] * buffer[i];
+    rms = std::sqrt(rms / numSamples);
+
+    DBG("[VoiceA diagnostic] block RMS=" << rms << " peak=" << blockPeak);
 }
 
 // ============================================================
