@@ -14,7 +14,8 @@ static inline float ccTo01(int value)
 
 MIDIControl001AudioProcessor::MIDIControl001AudioProcessor()
   : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-    apvts(*this, nullptr, "Parameters", createParameterLayout())
+    apvts(*this, nullptr, "Parameters", createParameterLayout()),
+    voiceManager_([this]{ return makeSnapshotFromParams(); })
 {}
 
 void MIDIControl001AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -29,8 +30,6 @@ void MIDIControl001AudioProcessor::prepareToPlay(double sampleRate, int samplesP
 void MIDIControl001AudioProcessor::releaseResources()
 {
     DBG("releaseResources begin");
-
-    voiceManager_ = {};
     monoScratch_.setSize(0, 0);
 
     if (!juce::MessageManager::existsAndIsCurrentThread())
@@ -112,9 +111,7 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     monoScratch_.clear();
 
     const auto snap = makeSnapshotFromParams();
-    voiceManager = std::make_unique<VoiceManager>(
-        [this]() { return makeSnapshotFromParams(*apvts_); }
-    );
+    voiceManager_.startBlock();
 
     for (const auto metadata : midi)
     {

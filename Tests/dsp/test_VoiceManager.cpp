@@ -7,14 +7,14 @@ using Catch::Approx;
 #include <filesystem>
 
 TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
-    VoiceManager mgr;
+    VoiceManager mgr([] { return ParameterSnapshot{}; });
     ParameterSnapshot snap;
     snap.oscFreq = 220.0f;
     snap.envAttack = 0.001f;
     snap.envRelease = 0.05f;
 
     mgr.prepare(44100.0);
-    mgr.startBlock(snap);
+    mgr.startBlock();
 
     // trigger two notes
     mgr.handleNoteOn(60, 1.0f);
@@ -33,8 +33,8 @@ TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
     std::cout << "[DEBUG] calling writeJson()\n";
     namespace fs = std::filesystem;
 
-    auto jsonPath = fs::path(__FILE__).parent_path()
-                    / ".." / "baseline" / "voice_output_reference.json";
+  auto jsonPath = fs::path(__FILE__).parent_path()
+                  / ".." / "baseline" / "voice_output_reference.json";
     writeJson(jsonPath.string(), hash, rms, peak);
 
     // trigger note offs
@@ -56,10 +56,10 @@ TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
 }
 
 TEST_CASE("VoiceManager voice stealing", "[voicemanager]") {
-    VoiceManager mgr;
+    VoiceManager mgr([] { return ParameterSnapshot{}; });
     ParameterSnapshot snap;
     mgr.prepare(44100.0);
-    mgr.startBlock(snap);
+    mgr.startBlock();
 
     // fill all voices
     for (int i = 0; i < VoiceManager::maxVoices; ++i)
