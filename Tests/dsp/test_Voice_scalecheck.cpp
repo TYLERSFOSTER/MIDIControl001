@@ -11,7 +11,7 @@ using Catch::Approx;
 // ============================================================
 // Voice scalecheck lifecycle — no baselines, frequency variant
 // ============================================================
-TEST_CASE("Voice scalecheck lifecycle", "[voice][scalecheck]") {
+TEST_CASE("Voice lifecycle scalecheck", "[voice][lifecycle][scalecheck]") {
     VoiceA v;
     ParameterSnapshot snap;
     snap.oscFreq    = 220.0f;   // lower pitch, same envelope
@@ -62,7 +62,7 @@ TEST_CASE("Voice scalecheck lifecycle", "[voice][scalecheck]") {
 // ============================================================
 // Voice scalecheck tracks level — diagnostic only
 // ============================================================
-TEST_CASE("Voice scalecheck tracks level", "[voice][scalecheck]") {
+TEST_CASE("Voice lifecycle scalecheck tracks level", "[voice][lifecycle][scalecheck]") {
     VoiceA v;
     ParameterSnapshot snap;
     v.prepare(44100.0);

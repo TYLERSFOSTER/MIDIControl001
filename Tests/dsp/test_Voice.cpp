@@ -8,7 +8,7 @@ using Catch::Approx;
 #include <algorithm>
 #include <cmath>
 
-TEST_CASE("Voice basic lifecycle", "[voice]")
+TEST_CASE("Voice lifecycle basic", "[voice][lifecycle]")
 {
     VoiceA v;
     ParameterSnapshot snap;
@@ -57,7 +57,7 @@ TEST_CASE("Voice basic lifecycle", "[voice]")
     REQUIRE_FALSE(v.isActive());
 }
 
-TEST_CASE("Voice tracks level", "[voice]")
+TEST_CASE("Voice lifecycle basic tracks level", "[voice][lifecycle]")
 {
     VoiceA v;
     ParameterSnapshot snap;
