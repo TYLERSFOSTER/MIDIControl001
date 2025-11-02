@@ -13,6 +13,11 @@ public:
     float nextSample();               // amplitude for next sample
     bool  isActive() const;           // false once fully released
 
+    // ============================================================
+    // Diagnostic / read-only accessor (added safely)
+    // ============================================================
+    float getCurrentValue() const noexcept { return static_cast<float>(level_); }
+
 private:
     enum class State { Idle, Attack, Sustain, Release };
     State  state_ = State::Idle;

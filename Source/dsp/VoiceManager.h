@@ -3,10 +3,15 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <fstream>
 #include "params/ParameterSnapshot.h"
 #include "dsp/voices/VoiceA.h"
 #include "dsp/BaseVoice.h"
 #include "params/ParamLayout.h"
+
+// ============================================================
+// VoiceManager — manages voice allocation and clickless summation
+// ============================================================
 
 class VoiceManager {
 public:
@@ -17,10 +22,15 @@ public:
 
     static constexpr int maxVoices = 32;
 
-    void prepare(double sampleRate) {
+    void prepare(double sampleRate)
+    {
+        sampleRate_ = sampleRate;
+        globalGain_.reset(sampleRate, 0.005); // 5 ms fade on poly changes
+
         voices_.clear();
         voices_.reserve(maxVoices);
-        for (int i = 0; i < maxVoices; ++i) {
+        for (int i = 0; i < maxVoices; ++i)
+        {
             auto v = std::make_unique<VoiceA>();
             v->prepare(sampleRate);
             voices_.push_back(std::move(v));
@@ -30,33 +40,29 @@ public:
             " voices at " + juce::String(sampleRate));
     }
 
-    void startBlock() {
-        static ParameterSnapshot snapshot;      // re-use each block
-        snapshot = makeSnapshot_();             // ← pull live params
-
+    void startBlock()
+    {
+        static ParameterSnapshot snapshot;
+        snapshot = makeSnapshot_();
         currentSnapshot_ = &snapshot;
 
-        // ============================================================
-        // Pass per-voice params to all voices (safe even if inactive)
-        // ============================================================
         for (int i = 0; i < static_cast<int>(voices_.size()) && i < NUM_VOICES; ++i)
         {
             if (auto* voiceA = dynamic_cast<VoiceA*>(voices_[i].get()))
-            {
                 voiceA->updateParams(snapshot.voices[i]);
-            }
         }
     }
 
-    void handleNoteOn(int midiNote, float velocity) {
+    void handleNoteOn(int midiNote, float velocity)
+    {
         if (!currentSnapshot_) return;
 
-        // find free voice
+        // find free or quietest voice
         auto it = std::find_if(voices_.begin(), voices_.end(),
                                [](const auto& v) { return !v->isActive(); });
 
-        if (it == voices_.end()) {
-            // all active → steal quietest
+        if (it == voices_.end())
+        {
             it = std::min_element(voices_.begin(), voices_.end(),
                                   [](const auto& a, const auto& b) {
                                       return a->getCurrentLevel() < b->getCurrentLevel();
@@ -64,20 +70,30 @@ public:
         }
 
         (*it)->noteOn(*currentSnapshot_, midiNote, velocity);
+
+        // fade-in poly mix gain to avoid click when new voice starts
+        globalGain_.setTargetValue(1.0f);
     }
 
-    void handleNoteOff(int midiNote) {
-        for (auto& v : voices_) {
+    void handleNoteOff(int midiNote)
+    {
+        for (auto& v : voices_)
+        {
             if (v->isActive() && v->getNote() == midiNote)
                 v->noteOff();
+        }
+
+        // if all voices are now off, fade-out master gain
+        if (std::none_of(voices_.begin(), voices_.end(),
+                         [](const auto& v){ return v->isActive(); }))
+        {
+            globalGain_.setTargetValue(0.0f);
         }
     }
 
     void render(float* buffer, int numSamples)
     {
-        // Clear once at start of block
         std::fill(buffer, buffer + numSamples, 0.0f);
-
         int activeCount = 0;
 
         for (auto& v : voices_)
@@ -89,12 +105,42 @@ public:
             }
         }
 
-        DBG("VoiceManager: active voices after render = " << activeCount);
+        float blockSumSq = 0.0f;
+        for (int i = 0; i < numSamples; ++i)
+            blockSumSq += buffer[i] * buffer[i];
+        float preGainRMS = std::sqrt(blockSumSq / numSamples);
+
+        // ============================================================
+        // Log diagnostic info to local file (always open successfully)
+        // ============================================================
+        std::ofstream log("voice_debug.txt", std::ios::app);
+        if (!log.is_open())
+        {
+            DBG("VoiceManager: FAILED to open voice_debug.txt");
+            return;
+        }
+
+        log << "[VoiceManager] pre-gain RMS=" << preGainRMS
+            << " start=" << globalGain_.getCurrentValue();
+
+        std::cout << "[DIAG] globalGain start=" << globalGain_.getCurrentValue()
+                  << " end=" << globalGain_.getTargetValue() << std::endl;
+
+        for (int i = 0; i < numSamples; ++i)
+        {
+            float g = globalGain_.getNextValue();
+            buffer[i] *= g;
+        }
+
+        log << " end=" << globalGain_.getCurrentValue()
+            << " active=" << activeCount << std::endl;
     }
 
 private:
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
+    SnapshotMaker makeSnapshot_;  // stored callback
 
-SnapshotMaker makeSnapshot_;  // stored callback
+    double sampleRate_ = 48000.0;
+    juce::SmoothedValue<float> globalGain_{ 1.0f }; // clickless poly gain
 };

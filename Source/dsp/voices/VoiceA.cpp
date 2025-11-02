@@ -1,8 +1,9 @@
 #include "VoiceA.h"
 #include <cmath>
+#include <fstream>
 
 // ============================================================
-// Step 7: VoiceA implementation with live parameter updates
+// Step 7: VoiceA implementation with diagnostics
 // ============================================================
 
 void VoiceA::prepare(double sampleRate)
@@ -56,12 +57,26 @@ void VoiceA::render(float* buffer, int numSamples)
         return;
 
     float blockPeak = 0.0f;
+    float blockSumSq = 0.0f;
+
+    // ------------------------------------------------------------
+    // Instrumentation: track envelope and oscillator amplitude
+    // ------------------------------------------------------------
+    float envStart = env_.getCurrentValue(); // assume EnvelopeA exposes this
+    float envEnd   = 0.0f;
+
     for (int i = 0; i < numSamples; ++i)
     {
         const float envValue = env_.nextSample();
-        const float sample   = osc_.nextSample() * envValue;
+        const float oscValue = osc_.nextSample();
+        const float sample   = oscValue * envValue;
+
         buffer[i] += sample;
         blockPeak = std::max(blockPeak, std::fabs(sample));
+        blockSumSq += sample * sample;
+
+        if (i == numSamples - 1)
+            envEnd = envValue;
     }
 
     level_ = blockPeak;
@@ -73,18 +88,30 @@ void VoiceA::render(float* buffer, int numSamples)
         osc_.resetPhase();
     }
 
-    // --- Diagnostic RMS check (temporary) ---
-    float rms = 0.0f;
-    for (int i = 0; i < numSamples; ++i)
-        rms += buffer[i] * buffer[i];
-    rms = std::sqrt(rms / numSamples);
+    // ============================================================
+    // Diagnostic RMS + envelope trace (unthrottled, per block)
+    // ============================================================
+    const float rms = std::sqrt(blockSumSq / numSamples);
 
-    DBG("[VoiceA diagnostic] block RMS=" << rms << " peak=" << blockPeak);
+    // Write to a file so we can read it after the test
+    {
+        std::ofstream log("voice_debug.txt", std::ios::app);
+        log << "[VoiceA] note=" << note_
+            << " env(start→end)=" << envStart << "→" << envEnd
+            << " blockRMS=" << rms
+            << " peak=" << blockPeak
+            << " active=" << (active_ ? "Y" : "N")
+            << "\n";
+    }
+
+    // Also print to console immediately
+    DBG("[VoiceA] note=" << note_
+        << " env(start→end)=" << envStart << "→" << envEnd
+        << " blockRMS=" << rms
+        << " peak=" << blockPeak
+        << " active=" << (active_ ? "Y" : "N"));
 }
 
-// ============================================================
-// Step 7 addition: real-time parameter updates
-// ============================================================
 void VoiceA::updateParams(const VoiceParams& vp)
 {
     if (!active_)
