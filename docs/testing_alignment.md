@@ -32,3 +32,65 @@ Review EnvelopeA scaling or VoiceA render loop; do not block merge unless regres
 | Date | Author | Change | Rationale |
 |------|---------|---------|-----------|
 | 2025-11-03 | Tyler Foster | Removed VoiceLegacy comparison; set to Advisory | VoiceLegacy retired |
+
+---
+
+### **File**
+`Tests/dsp/test_SmoothedValue.cpp`
+
+#### **Title**
+SmoothedValue — Linear ramp verification
+
+#### **Purpose**
+Ensures JUCE SmoothedValue ramps smoothly between target values over expected duration.
+
+#### **Relevance**
+Prevents envelope or automation clicks due to incorrect smoothing timing.
+
+#### **Lifecycle Status**
+Active
+
+#### **Dependencies**
+JUCE::dsp, Catch2 matchers, test harness
+
+#### **Failure Meaning**
+If failing, ramp timing or sample-rate reset logic may be broken.
+
+#### **Action When Failing**
+Check sample-rate-dependent smoothing constants; verify `reset()` and `getNextValue()` logic.
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Added SmoothedValue test | Confirmed linear ramp behavior |
+
+---
+
+### **File**
+`Tests/dsp/test_DebugJsonDump.cpp`
+
+#### **Title**
+DebugJsonDump — Baseline JSON integrity
+
+#### **Purpose**
+Verifies that the baseline reference JSON parses and keys are accessible.
+
+#### **Relevance**
+Protects against silent corruption of diagnostic reference files.
+
+#### **Lifecycle Status**
+Active
+
+#### **Dependencies**
+nlohmann_json, filesystem
+
+#### **Failure Meaning**
+Baseline JSON missing, invalid, or changed format.
+
+#### **Action When Failing**
+Confirm JSON path, regenerate reference, update docs if intentional.
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Added DebugJsonDump test | Confirms baseline JSON integrity |
