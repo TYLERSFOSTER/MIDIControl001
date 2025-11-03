@@ -1,4 +1,3 @@
-// [Lifecycle: Advisory] — Diagnostic only, measures VoiceA RMS/peak behavior at 220 Hz
 #include <catch2/catch_test_macros.hpp>
 #include "dsp/voices/VoiceA.h"
 #include "utils/dsp_metrics.h"
