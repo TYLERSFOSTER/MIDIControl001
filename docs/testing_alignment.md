@@ -5,6 +5,9 @@
 
 #### **Title**
 VoiceA Diagnostic — RMS and Peak at 220 Hz
+| 2025-11-03 | Tyler Foster | Added test_DebugJsonDump.cpp | Validates JSON baseline serialization |
+| 2025-11-03 | Tyler Foster | Added test_SmoothedValue.cpp | Verifies JUCE SmoothedValue ramp correctness |
+| 2025-11-03 | Tyler Foster | Renamed and tagged VoiceA diagnostics | Reclassified under DSP/voices |
 
 #### **Purpose**
 Track overall signal amplitude and envelope health for a single voice at a fixed reference pitch.
