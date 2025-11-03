@@ -83,6 +83,15 @@ def main():
     block_log = root / "process_block.log"
     report_file = root / "report_summary.txt"
 
+    # ============================================================
+    # Fallback: check .safety/step10_backups if main log missing
+    # ============================================================
+    if not voice_log.exists():
+        safety = root / ".safety" / "step10_backups" / "voice_debug.txt"
+        if safety.exists():
+            print(f"Using fallback log from {safety}")
+            voice_log = safety
+
     try:
         if not voice_log.exists():
             print("Missing voice_debug.txt")
