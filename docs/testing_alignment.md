@@ -94,3 +94,219 @@ Confirm JSON path, regenerate reference, update docs if intentional.
 | Date | Author | Change | Rationale |
 |------|---------|--------|-----------|
 | 2025-11-03 | Tyler Foster | Added DebugJsonDump test | Confirms baseline JSON integrity |
+
+### **File**
+`Tests/dsp/envelopes/test_EnvelopeA.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_EnvelopeA.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/oscillators/test_oscillator.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_oscillator.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/test_BaseVoice_interface.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_BaseVoice_interface.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/test_InstrumentRegistry.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_InstrumentRegistry.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/test_VoiceManager.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_VoiceManager.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/voices/test_Voice_scalecheck.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_Voice_scalecheck.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/voices/test_Voice.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_Voice.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/dsp/voices/test_VoiceA_diagnostics.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_VoiceA_diagnostics.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/params/test_params.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_params.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/params/test_Snapshot.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_Snapshot.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/plugin/test_processor_integration.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_processor_integration.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
+
+### **File**
+`Tests/plugin/test_processor_smoke.cpp`
+
+#### **Title**
+TBD — auto-generated stub for test_processor_smoke.cpp
+
+#### **Purpose**
+Describe test purpose here.
+
+#### **Lifecycle Status**
+Active
+
+#### **Change History**
+| Date | Author | Change | Rationale |
+|------|---------|--------|-----------|
+| 2025-11-03 | Tyler Foster | Auto-generated stub | Awaiting manual completion |
+
