@@ -84,7 +84,7 @@ target_sources(MIDIControl001
 
         # utils
         Source/utils/Logger.h
-         Source/utils/MathHelpers.h
+        Source/utils/MathHelpers.h
 )
 
 juce_generate_juce_header(MIDIControl001)
