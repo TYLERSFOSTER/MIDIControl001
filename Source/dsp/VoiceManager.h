@@ -105,6 +105,17 @@ public:
         float blockSumSq = std::inner_product(buffer, buffer + numSamples, buffer, 0.0f);
         float preGainRMS = std::sqrt(blockSumSq / numSamples);
 
+        // --- Step 13: Adaptive RMS controller ---
+        const float targetRMS   = 0.26f;
+        const float eps         = 1e-6f;
+        const float measured    = std::max(preGainRMS, eps);
+        const float ctrl        = juce::jlimit(0.25f, 4.0f, targetRMS / measured);
+
+        // Light IIR blend to avoid pumping
+        const float prevTarget  = globalGain_.getTargetValue();
+        const float blended     = 0.9f * prevTarget + 0.1f * ctrl;
+        globalGain_.setTargetValue(juce::jlimit(0.25f, 4.0f, blended));
+
         std::ofstream log("voice_debug.txt", std::ios::app);
         if (!log.is_open())
         {
