@@ -23,7 +23,8 @@ FetchContent_MakeAvailable(nlohmann_json)
 # Gather test sources
 # ============================================================
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/**/test_*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp"       # catch top-level tests
+  "${CMAKE_CURRENT_SOURCE_DIR}/**/test_*.cpp"    # catch nested tests
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 )
 
@@ -94,3 +95,5 @@ add_custom_command(
   COMMAND bash ${CMAKE_SOURCE_DIR}/tools/post_build_report.sh
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "TEST_SOURCES found: ${TEST_SOURCES}")
