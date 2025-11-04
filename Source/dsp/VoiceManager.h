@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include <fstream>
+#include <numeric> // for inner_product
 #include "params/ParameterSnapshot.h"
 #include "dsp/voices/VoiceA.h"
 #include "dsp/BaseVoice.h"
@@ -57,7 +58,6 @@ public:
     {
         if (!currentSnapshot_) return;
 
-        // find free or quietest voice
         auto it = std::find_if(voices_.begin(), voices_.end(),
                                [](const auto& v) { return !v->isActive(); });
 
@@ -70,8 +70,6 @@ public:
         }
 
         (*it)->noteOn(*currentSnapshot_, midiNote, velocity);
-
-        // fade-in poly mix gain to avoid click when new voice starts
         globalGain_.setTargetValue(1.0f);
     }
 
@@ -83,7 +81,6 @@ public:
                 v->noteOff();
         }
 
-        // if all voices are now off, fade-out master gain
         if (std::none_of(voices_.begin(), voices_.end(),
                          [](const auto& v){ return v->isActive(); }))
         {
@@ -105,14 +102,9 @@ public:
             }
         }
 
-        float blockSumSq = 0.0f;
-        for (int i = 0; i < numSamples; ++i)
-            blockSumSq += buffer[i] * buffer[i];
+        float blockSumSq = std::inner_product(buffer, buffer + numSamples, buffer, 0.0f);
         float preGainRMS = std::sqrt(blockSumSq / numSamples);
 
-        // ============================================================
-        // Log diagnostic info to local file (always open successfully)
-        // ============================================================
         std::ofstream log("voice_debug.txt", std::ios::app);
         if (!log.is_open())
         {
@@ -131,6 +123,10 @@ public:
             float g = globalGain_.getNextValue();
             buffer[i] *= g;
         }
+
+        // === Step 12 diagnostic probe ===
+        float postGainRMS = std::sqrt(std::inner_product(buffer, buffer + numSamples, buffer, 0.0f) / numSamples);
+        DBG("VoiceManager: postGainRMS = " << postGainRMS);
 
         log << " end=" << globalGain_.getCurrentValue()
             << " active=" << activeCount << std::endl;
