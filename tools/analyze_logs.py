@@ -59,9 +59,7 @@ def detect_anomalies(rms_series, active_series):
     # 2. Residual audio but no active voices
     for i, (r, a) in enumerate(zip(rms_series, active_series)):
         if r > 1e-4 and a == 0:
-            anomalies.append(
-                f"⚠️ Residual audio (RMS={r:.4f}) while no active voices at block {i}"
-            )
+            anomalies.append(f"⚠️ Residual audio (RMS={r:.4f}) while no active voices at block {i}")
 
     # 3. Voice overflow
     for i, a in enumerate(active_series):
@@ -78,25 +76,36 @@ def detect_anomalies(rms_series, active_series):
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    # The repo root (two levels up from this file when run from build/)
+    script_dir = Path(__file__).resolve().parent
+    root = script_dir.parents[1]
+
+    # Primary expected log paths (repo root)
     voice_log = root / "voice_debug.txt"
     block_log = root / "process_block.log"
     report_file = root / "report_summary.txt"
 
     # ============================================================
-    # Fallback: check .safety/step10_backups if main log missing
+    # Fallback resolution — ensure we can find logs no matter CWD
     # ============================================================
-    if not voice_log.exists():
-        safety = root / ".safety" / "step10_backups" / "voice_debug.txt"
-        if safety.exists():
-            print(f"Using fallback log from {safety}")
-            voice_log = safety
+    fallback_candidates = [
+        voice_log,
+        root / ".safety" / "step10_backups" / "voice_debug.txt",
+        script_dir.parents[2] / ".safety" / "step10_backups" / "voice_debug.txt",
+        Path.cwd().parents[1] / ".safety" / "step10_backups" / "voice_debug.txt",
+    ]
+
+    resolved_voice_log = next((p for p in fallback_candidates if p.exists()), None)
+
+    if resolved_voice_log is None:
+        print("Missing voice_debug.txt (no fallback found)")
+        sys.exit(99)
+
+    if resolved_voice_log != voice_log:
+        print(f"Using fallback log from {resolved_voice_log}")
+        voice_log = resolved_voice_log
 
     try:
-        if not voice_log.exists():
-            print("Missing voice_debug.txt")
-            sys.exit(99)
-
         rms, active = parse_voice_log(voice_log)
         noteon, noteoff = parse_block_log(block_log) if block_log.exists() else (0, 0)
 
@@ -118,9 +127,7 @@ def main():
             f"NoteOn events            : {noteon}",
             f"NoteOff events           : {noteoff}",
             f"Voice log size           : {voice_log.stat().st_size/1024:.1f} KB",
-            f"Block log size           : {block_log.stat().st_size/1024:.1f} KB"
-            if block_log.exists()
-            else "",
+            f"Block log size           : {block_log.stat().st_size/1024:.1f} KB" if block_log.exists() else "",
             "",
             "=== Anomaly Diagnostics ===",
             *anomalies,
@@ -132,7 +139,6 @@ def main():
         print(text)
         report_file.write_text(text)
 
-        # Exit code logic
         if clipping_found:
             sys.exit(2)
         elif flat_rms_found:
