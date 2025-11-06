@@ -45,7 +45,7 @@ fi
 case $status in
   0)  echo "✅ Analyzer clean (no anomalies)." ;;
   1)  echo "⚠️  Analyzer warnings (flat RMS)." ;;
-  2)  echo "🔥 Analyzer found clipping/non-fatal anomalies." ;;
+  2)  echo "🔥 Analyzer found clipping or missing-data anomaly (non-fatal)." ;;
   99) echo "❌ Analyzer crashed or returned unexpected code (99)." ;;
   *)  echo "❌ Analyzer returned unknown exit code $status." ;;
 esac

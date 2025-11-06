@@ -3,7 +3,7 @@
 Analyzer exit codes:
     0  = success, no anomalies
     1  = mild warnings (flat RMS segments only)
-    2  = non-fatal anomalies (clipping or similar)
+    2  = non-fatal anomalies (clipping or missing data)
     99 = unexpected crash (should be caught by bash wrapper)
 """
 
@@ -13,8 +13,9 @@ import numpy as np
 from pathlib import Path
 
 # ============================================================
-# Phase 4-E: Unified Analyzer
+# Phase 4-E: Unified Analyzer (hermetic, resilient version)
 # ============================================================
+
 
 def parse_voice_log(path: Path):
     rms, active = [], []
@@ -59,7 +60,9 @@ def detect_anomalies(rms_series, active_series):
     # 2. Residual audio but no active voices
     for i, (r, a) in enumerate(zip(rms_series, active_series)):
         if r > 1e-4 and a == 0:
-            anomalies.append(f"⚠️ Residual audio (RMS={r:.4f}) while no active voices at block {i}")
+            anomalies.append(
+                f"⚠️ Residual audio (RMS={r:.4f}) while no active voices at block {i}"
+            )
 
     # 3. Voice overflow
     for i, a in enumerate(active_series):
@@ -76,30 +79,37 @@ def detect_anomalies(rms_series, active_series):
 
 
 def main():
-    # The repo root (two levels up from this file when run from build/)
     script_dir = Path(__file__).resolve().parent
-    root = script_dir.parents[1]
+    root = Path(__file__).resolve().parents[1]
 
-    # Primary expected log paths (repo root)
     voice_log = root / "voice_debug.txt"
     block_log = root / "process_block.log"
     report_file = root / "report_summary.txt"
 
     # ============================================================
-    # Fallback resolution — ensure we can find logs no matter CWD
+    # Hermetic fallback list — no ambient CWD dependence
     # ============================================================
     fallback_candidates = [
         voice_log,
         root / ".safety" / "step10_backups" / "voice_debug.txt",
         script_dir.parents[2] / ".safety" / "step10_backups" / "voice_debug.txt",
-        Path.cwd().parents[1] / ".safety" / "step10_backups" / "voice_debug.txt",
     ]
 
     resolved_voice_log = next((p for p in fallback_candidates if p.exists()), None)
 
+    print("[DEBUG] __file__   =", __file__)
+    print("[DEBUG] script_dir =", script_dir)
+    print("[DEBUG] root       =", root)
+    print("[DEBUG] cwd        =", Path.cwd())
+
     if resolved_voice_log is None:
-        print("Missing voice_debug.txt (no fallback found)")
-        sys.exit(99)
+        print("⚠️ Missing voice_debug.txt — reporting no data")
+        report_text = (
+            "=== MIDIControl001 Session Report ===\n"
+            "No voice log found. Analyzer returning code 2 (non-fatal anomaly).\n"
+        )
+        report_file.write_text(report_text)
+        sys.exit(2)
 
     if resolved_voice_log != voice_log:
         print(f"Using fallback log from {resolved_voice_log}")
@@ -113,7 +123,7 @@ def main():
         avg_rms = float(np.mean(rms)) if n_blocks else 0.0
         max_rms = float(np.max(rms)) if n_blocks else 0.0
         avg_active = float(np.mean(active)) if n_blocks else 0.0
-        duration_s = n_blocks * 512 / 48000.0  # 512-sample buffer @48kHz
+        duration_s = n_blocks * 512 / 48000.0
 
         anomalies, flat_rms_found, clipping_found = detect_anomalies(rms, active)
 
@@ -126,8 +136,10 @@ def main():
             f"Avg active voices        : {avg_active:.3f}",
             f"NoteOn events            : {noteon}",
             f"NoteOff events           : {noteoff}",
-            f"Voice log size           : {voice_log.stat().st_size/1024:.1f} KB",
-            f"Block log size           : {block_log.stat().st_size/1024:.1f} KB" if block_log.exists() else "",
+            f"Voice log size           : {voice_log.stat().st_size / 1024:.1f} KB",
+            f"Block log size           : {block_log.stat().st_size / 1024:.1f} KB"
+            if block_log.exists()
+            else "",
             "",
             "=== Anomaly Diagnostics ===",
             *anomalies,

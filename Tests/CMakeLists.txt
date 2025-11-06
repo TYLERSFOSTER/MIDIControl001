@@ -68,6 +68,8 @@ target_compile_definitions(MIDIControl001_tests PRIVATE
   JUCE_VST3_CAN_REPLACE_VST2=0
   JUCE_STANDALONE_APPLICATION=1
   JUCE_UNIT_TESTS=1
+  # ✅ Added for absolute report path
+  CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
 )
 
 target_link_libraries(MIDIControl001_tests PRIVATE
