@@ -1,2 +1,734 @@
 === MIDIControl001 Session Report ===
-No voice log found. Analyzer returning code 2 (non-fatal anomaly).
+Blocks processed         : 45206
+Estimated duration (s)   : 482.20
+Avg RMS                  : 0.199337
+Max RMS                  : 2.115930
+Avg active voices        : 0.519
+NoteOn events            : 90
+NoteOff events           : 0
+Voice log size           : 5796.9 KB
+Block log size           : 750.4 KB
+
+=== Anomaly Diagnostics ===
+⚠️ RMS flat for 418 blocks near index 419
+⚠️ RMS flat for 289 blocks near index 786
+⚠️ RMS flat for 7 blocks near index 826
+⚠️ RMS flat for 12 blocks near index 883
+⚠️ RMS flat for 502 blocks near index 1408
+⚠️ RMS flat for 5918 blocks near index 7643
+⚠️ RMS flat for 8 blocks near index 7697
+⚠️ RMS flat for 318 blocks near index 8046
+⚠️ RMS flat for 127 blocks near index 8698
+⚠️ RMS flat for 30 blocks near index 8839
+⚠️ RMS flat for 13 blocks near index 9113
+⚠️ RMS flat for 46 blocks near index 9334
+⚠️ RMS flat for 1366 blocks near index 10869
+⚠️ RMS flat for 19 blocks near index 10907
+⚠️ RMS flat for 13 blocks near index 11109
+⚠️ RMS flat for 72 blocks near index 11305
+⚠️ RMS flat for 8 blocks near index 11413
+⚠️ RMS flat for 19 blocks near index 11550
+⚠️ RMS flat for 10 blocks near index 12292
+⚠️ RMS flat for 28 blocks near index 12352
+⚠️ RMS flat for 6 blocks near index 12401
+⚠️ RMS flat for 15 blocks near index 12562
+⚠️ RMS flat for 7 blocks near index 12636
+⚠️ RMS flat for 30 blocks near index 12763
+⚠️ RMS flat for 5 blocks near index 12842
+⚠️ RMS flat for 22 blocks near index 12866
+⚠️ RMS flat for 67 blocks near index 13460
+⚠️ RMS flat for 65 blocks near index 13553
+⚠️ RMS flat for 5 blocks near index 13584
+⚠️ RMS flat for 3219 blocks near index 16903
+⚠️ RMS flat for 42 blocks near index 16971
+⚠️ RMS flat for 388 blocks near index 17401
+⚠️ RMS flat for 1355 blocks near index 18835
+⚠️ RMS flat for 209 blocks near index 19877
+⚠️ RMS flat for 181 blocks near index 20095
+⚠️ RMS flat for 220 blocks near index 20390
+⚠️ RMS flat for 2026 blocks near index 22467
+⚠️ RMS flat for 181 blocks near index 22696
+⚠️ RMS flat for 18 blocks near index 22740
+⚠️ RMS flat for 9 blocks near index 22771
+⚠️ RMS flat for 76 blocks near index 22873
+⚠️ RMS flat for 20 blocks near index 22939
+⚠️ RMS flat for 22 blocks near index 22983
+⚠️ RMS flat for 10 blocks near index 23017
+⚠️ RMS flat for 23 blocks near index 23065
+⚠️ RMS flat for 28 blocks near index 23128
+⚠️ RMS flat for 42 blocks near index 23199
+⚠️ RMS flat for 86 blocks near index 23307
+⚠️ RMS flat for 70 blocks near index 23399
+⚠️ RMS flat for 36 blocks near index 23459
+⚠️ RMS flat for 34 blocks near index 23518
+⚠️ RMS flat for 139 blocks near index 23681
+⚠️ RMS flat for 107 blocks near index 23810
+⚠️ RMS flat for 17 blocks near index 23848
+⚠️ RMS flat for 64 blocks near index 23914
+⚠️ RMS flat for 78 blocks near index 24015
+⚠️ RMS flat for 93 blocks near index 24171
+⚠️ RMS flat for 30 blocks near index 24218
+⚠️ RMS flat for 27 blocks near index 24264
+⚠️ RMS flat for 35 blocks near index 24319
+⚠️ RMS flat for 51 blocks near index 24389
+⚠️ RMS flat for 573 blocks near index 24983
+⚠️ RMS flat for 36 blocks near index 25039
+⚠️ RMS flat for 89 blocks near index 25147
+⚠️ RMS flat for 138 blocks near index 25307
+⚠️ RMS flat for 57 blocks near index 25385
+⚠️ RMS flat for 657 blocks near index 26062
+⚠️ RMS flat for 869 blocks near index 26960
+⚠️ RMS flat for 208 blocks near index 27195
+⚠️ RMS flat for 19 blocks near index 27303
+⚠️ RMS flat for 16 blocks near index 27474
+⚠️ RMS flat for 20 blocks near index 27531
+⚠️ RMS flat for 13 blocks near index 27737
+⚠️ RMS flat for 13 blocks near index 27777
+⚠️ RMS flat for 14 blocks near index 28157
+⚠️ RMS flat for 17 blocks near index 28207
+⚠️ RMS flat for 8 blocks near index 28244
+⚠️ RMS flat for 13 blocks near index 28363
+⚠️ RMS flat for 21 blocks near index 28419
+⚠️ RMS flat for 16 blocks near index 28474
+⚠️ RMS flat for 13 blocks near index 28522
+⚠️ RMS flat for 14 blocks near index 28570
+⚠️ RMS flat for 15 blocks near index 28611
+⚠️ RMS flat for 5 blocks near index 28644
+⚠️ RMS flat for 6 blocks near index 28676
+⚠️ RMS flat for 9 blocks near index 28714
+⚠️ RMS flat for 18 blocks near index 28765
+⚠️ RMS flat for 9 blocks near index 28805
+⚠️ RMS flat for 10 blocks near index 28986
+⚠️ RMS flat for 18 blocks near index 29214
+⚠️ RMS flat for 106 blocks near index 29505
+⚠️ RMS flat for 5 blocks near index 29535
+⚠️ RMS flat for 53 blocks near index 29611
+⚠️ RMS flat for 5 blocks near index 29645
+⚠️ RMS flat for 24 blocks near index 29694
+⚠️ RMS flat for 13 blocks near index 30199
+⚠️ RMS flat for 10 blocks near index 30362
+⚠️ RMS flat for 17 blocks near index 30412
+⚠️ RMS flat for 6 blocks near index 30512
+⚠️ RMS flat for 58 blocks near index 30652
+⚠️ RMS flat for 24 blocks near index 30783
+⚠️ RMS flat for 690 blocks near index 32058
+⚠️ RMS flat for 17 blocks near index 32271
+⚠️ RMS flat for 28 blocks near index 32365
+⚠️ RMS flat for 13 blocks near index 32426
+⚠️ RMS flat for 40 blocks near index 32489
+⚠️ RMS flat for 65 blocks near index 32577
+⚠️ RMS flat for 13 blocks near index 32627
+⚠️ RMS flat for 49 blocks near index 32714
+⚠️ RMS flat for 67 blocks near index 32809
+⚠️ RMS flat for 35 blocks near index 32869
+⚠️ RMS flat for 21 blocks near index 32918
+⚠️ RMS flat for 44 blocks near index 33032
+⚠️ RMS flat for 10 blocks near index 33162
+⚠️ RMS flat for 54 blocks near index 33243
+⚠️ RMS flat for 84 blocks near index 33366
+⚠️ RMS flat for 89 blocks near index 33496
+⚠️ RMS flat for 32 blocks near index 33562
+⚠️ RMS flat for 6 blocks near index 33590
+⚠️ RMS flat for 13 blocks near index 33627
+⚠️ RMS flat for 55 blocks near index 33764
+⚠️ RMS flat for 6 blocks near index 33884
+⚠️ RMS flat for 19 blocks near index 33928
+⚠️ RMS flat for 23 blocks near index 33977
+⚠️ RMS flat for 8 blocks near index 34015
+⚠️ RMS flat for 20 blocks near index 34060
+⚠️ RMS flat for 13 blocks near index 34097
+⚠️ RMS flat for 6 blocks near index 34169
+⚠️ RMS flat for 18 blocks near index 34214
+⚠️ RMS flat for 19 blocks near index 34271
+⚠️ RMS flat for 21 blocks near index 34326
+⚠️ RMS flat for 16 blocks near index 34380
+⚠️ RMS flat for 16 blocks near index 34432
+⚠️ RMS flat for 9 blocks near index 34476
+⚠️ RMS flat for 9 blocks near index 34511
+⚠️ RMS flat for 88 blocks near index 34626
+⚠️ RMS flat for 32 blocks near index 34719
+⚠️ RMS flat for 30 blocks near index 34772
+⚠️ RMS flat for 100 blocks near index 34981
+⚠️ RMS flat for 88 blocks near index 35105
+⚠️ RMS flat for 77 blocks near index 35250
+⚠️ RMS flat for 81 blocks near index 35394
+⚠️ RMS flat for 847 blocks near index 36285
+⚠️ RMS flat for 100 blocks near index 36409
+⚠️ RMS flat for 73 blocks near index 36681
+⚠️ RMS flat for 19 blocks near index 36723
+⚠️ RMS flat for 17 blocks near index 36761
+⚠️ RMS flat for 27 blocks near index 36824
+⚠️ RMS flat for 21 blocks near index 36898
+⚠️ RMS flat for 30 blocks near index 36969
+⚠️ RMS flat for 12 blocks near index 37039
+⚠️ RMS flat for 52 blocks near index 37123
+⚠️ RMS flat for 13 blocks near index 37173
+⚠️ RMS flat for 15 blocks near index 37213
+⚠️ RMS flat for 6 blocks near index 37245
+⚠️ RMS flat for 12 blocks near index 37337
+⚠️ RMS flat for 70 blocks near index 37461
+⚠️ RMS flat for 74 blocks near index 37573
+⚠️ RMS flat for 118 blocks near index 37721
+⚠️ RMS flat for 87 blocks near index 37845
+⚠️ RMS flat for 34 blocks near index 37902
+⚠️ RMS flat for 63 blocks near index 38041
+⚠️ RMS flat for 100 blocks near index 38223
+⚠️ RMS flat for 150 blocks near index 38443
+⚠️ RMS flat for 90 blocks near index 38591
+⚠️ RMS flat for 43 blocks near index 38690
+⚠️ RMS flat for 10 blocks near index 38747
+⚠️ RMS flat for 9 blocks near index 38787
+⚠️ RMS flat for 13 blocks near index 38831
+⚠️ RMS flat for 21 blocks near index 38900
+⚠️ RMS flat for 22 blocks near index 39089
+⚠️ RMS flat for 39 blocks near index 39160
+⚠️ RMS flat for 12 blocks near index 39196
+⚠️ RMS flat for 41 blocks near index 39264
+⚠️ RMS flat for 11 blocks near index 39299
+⚠️ RMS flat for 42 blocks near index 39365
+⚠️ RMS flat for 32 blocks near index 39548
+⚠️ RMS flat for 31 blocks near index 39906
+⚠️ RMS flat for 7 blocks near index 39939
+⚠️ RMS flat for 14 blocks near index 40079
+⚠️ RMS flat for 7 blocks near index 40108
+⚠️ RMS flat for 6 blocks near index 40140
+⚠️ RMS flat for 137 blocks near index 40304
+⚠️ RMS flat for 24 blocks near index 40381
+⚠️ RMS flat for 5 blocks near index 40448
+⚠️ RMS flat for 8 blocks near index 40511
+⚠️ RMS flat for 44 blocks near index 40811
+⚠️ RMS flat for 46 blocks near index 41234
+⚠️ RMS flat for 16 blocks near index 41360
+⚠️ RMS flat for 8 blocks near index 41438
+⚠️ RMS flat for 32 blocks near index 41571
+⚠️ RMS flat for 19 blocks near index 41648
+⚠️ RMS flat for 25 blocks near index 41735
+⚠️ RMS flat for 584 blocks near index 42474
+⚠️ RMS flat for 9 blocks near index 42503
+⚠️ RMS flat for 5 blocks near index 42534
+⚠️ RMS flat for 37 blocks near index 42602
+⚠️ RMS flat for 15 blocks near index 42642
+⚠️ RMS flat for 8 blocks near index 42721
+⚠️ RMS flat for 5 blocks near index 42776
+⚠️ RMS flat for 10 blocks near index 42848
+⚠️ RMS flat for 9 blocks near index 42898
+⚠️ RMS flat for 11 blocks near index 42987
+⚠️ RMS flat for 11 blocks near index 43130
+⚠️ RMS flat for 8 blocks near index 43449
+⚠️ RMS flat for 5 blocks near index 43525
+⚠️ RMS flat for 12 blocks near index 43566
+⚠️ RMS flat for 6 blocks near index 43622
+⚠️ RMS flat for 7 blocks near index 43754
+⚠️ RMS flat for 16 blocks near index 43808
+⚠️ RMS flat for 6 blocks near index 43882
+⚠️ RMS flat for 7 blocks near index 44106
+⚠️ RMS flat for 21 blocks near index 44363
+⚠️ RMS flat for 354 blocks at end of log
+🔥 Possible clipping (RMS=1.35) at block 789
+🔥 Possible clipping (RMS=1.33) at block 790
+🔥 Possible clipping (RMS=1.32) at block 791
+🔥 Possible clipping (RMS=1.33) at block 792
+🔥 Possible clipping (RMS=1.34) at block 793
+🔥 Possible clipping (RMS=1.34) at block 794
+🔥 Possible clipping (RMS=1.33) at block 795
+🔥 Possible clipping (RMS=1.32) at block 796
+🔥 Possible clipping (RMS=1.33) at block 797
+🔥 Possible clipping (RMS=1.35) at block 798
+🔥 Possible clipping (RMS=1.34) at block 799
+🔥 Possible clipping (RMS=1.32) at block 800
+🔥 Possible clipping (RMS=1.32) at block 801
+🔥 Possible clipping (RMS=1.17) at block 802
+🔥 Possible clipping (RMS=1.10) at block 8049
+🔥 Possible clipping (RMS=1.36) at block 8050
+🔥 Possible clipping (RMS=1.36) at block 8051
+🔥 Possible clipping (RMS=1.36) at block 8052
+🔥 Possible clipping (RMS=1.36) at block 8053
+🔥 Possible clipping (RMS=1.36) at block 8054
+🔥 Possible clipping (RMS=1.36) at block 8055
+🔥 Possible clipping (RMS=1.36) at block 8056
+🔥 Possible clipping (RMS=1.36) at block 8057
+🔥 Possible clipping (RMS=1.36) at block 8058
+🔥 Possible clipping (RMS=1.37) at block 8059
+🔥 Possible clipping (RMS=1.79) at block 8060
+🔥 Possible clipping (RMS=2.06) at block 8061
+🔥 Possible clipping (RMS=2.07) at block 8062
+🔥 Possible clipping (RMS=2.07) at block 8063
+🔥 Possible clipping (RMS=2.07) at block 8064
+🔥 Possible clipping (RMS=2.07) at block 8065
+🔥 Possible clipping (RMS=2.07) at block 8066
+🔥 Possible clipping (RMS=2.07) at block 8067
+🔥 Possible clipping (RMS=2.06) at block 8068
+🔥 Possible clipping (RMS=1.70) at block 8069
+🔥 Possible clipping (RMS=1.22) at block 8070
+🔥 Possible clipping (RMS=1.13) at block 8112
+🔥 Possible clipping (RMS=1.14) at block 8113
+🔥 Possible clipping (RMS=1.16) at block 8114
+🔥 Possible clipping (RMS=1.17) at block 8115
+🔥 Possible clipping (RMS=1.19) at block 8116
+🔥 Possible clipping (RMS=1.20) at block 8117
+🔥 Possible clipping (RMS=1.22) at block 8118
+🔥 Possible clipping (RMS=1.23) at block 8119
+🔥 Possible clipping (RMS=1.24) at block 8120
+🔥 Possible clipping (RMS=1.25) at block 8121
+🔥 Possible clipping (RMS=1.24) at block 8122
+🔥 Possible clipping (RMS=1.24) at block 8123
+🔥 Possible clipping (RMS=1.24) at block 8124
+🔥 Possible clipping (RMS=1.25) at block 8125
+🔥 Possible clipping (RMS=1.25) at block 8126
+🔥 Possible clipping (RMS=1.25) at block 8127
+🔥 Possible clipping (RMS=1.25) at block 8128
+🔥 Possible clipping (RMS=1.25) at block 8129
+🔥 Possible clipping (RMS=1.25) at block 8130
+🔥 Possible clipping (RMS=1.24) at block 8131
+🔥 Possible clipping (RMS=1.12) at block 8132
+🔥 Possible clipping (RMS=1.14) at block 8170
+🔥 Possible clipping (RMS=1.32) at block 8171
+🔥 Possible clipping (RMS=1.31) at block 8172
+🔥 Possible clipping (RMS=1.30) at block 8173
+🔥 Possible clipping (RMS=1.30) at block 8174
+🔥 Possible clipping (RMS=1.29) at block 8175
+🔥 Possible clipping (RMS=1.29) at block 8176
+🔥 Possible clipping (RMS=1.14) at block 8177
+🔥 Possible clipping (RMS=1.17) at block 8188
+🔥 Possible clipping (RMS=1.17) at block 8189
+🔥 Possible clipping (RMS=1.16) at block 8190
+🔥 Possible clipping (RMS=1.16) at block 8191
+🔥 Possible clipping (RMS=1.15) at block 8192
+🔥 Possible clipping (RMS=1.15) at block 8193
+🔥 Possible clipping (RMS=1.14) at block 8194
+🔥 Possible clipping (RMS=1.14) at block 8195
+🔥 Possible clipping (RMS=1.14) at block 8196
+🔥 Possible clipping (RMS=1.13) at block 8197
+🔥 Possible clipping (RMS=1.13) at block 8198
+🔥 Possible clipping (RMS=1.13) at block 8199
+🔥 Possible clipping (RMS=1.13) at block 8200
+🔥 Possible clipping (RMS=1.16) at block 8201
+🔥 Possible clipping (RMS=1.23) at block 8202
+🔥 Possible clipping (RMS=1.23) at block 8203
+🔥 Possible clipping (RMS=1.16) at block 8204
+🔥 Possible clipping (RMS=1.10) at block 8205
+🔥 Possible clipping (RMS=1.36) at block 8251
+🔥 Possible clipping (RMS=1.36) at block 8252
+🔥 Possible clipping (RMS=1.36) at block 8253
+🔥 Possible clipping (RMS=1.36) at block 8254
+🔥 Possible clipping (RMS=1.36) at block 8255
+🔥 Possible clipping (RMS=1.36) at block 8256
+🔥 Possible clipping (RMS=1.36) at block 8257
+🔥 Possible clipping (RMS=1.36) at block 8258
+🔥 Possible clipping (RMS=1.35) at block 8259
+🔥 Possible clipping (RMS=1.36) at block 8260
+🔥 Possible clipping (RMS=1.78) at block 8261
+🔥 Possible clipping (RMS=2.06) at block 8262
+🔥 Possible clipping (RMS=2.06) at block 8263
+🔥 Possible clipping (RMS=2.06) at block 8264
+🔥 Possible clipping (RMS=2.06) at block 8265
+🔥 Possible clipping (RMS=2.06) at block 8266
+🔥 Possible clipping (RMS=1.70) at block 8267
+🔥 Possible clipping (RMS=1.15) at block 8499
+🔥 Possible clipping (RMS=1.18) at block 8500
+🔥 Possible clipping (RMS=1.20) at block 8501
+🔥 Possible clipping (RMS=1.23) at block 8502
+🔥 Possible clipping (RMS=1.25) at block 8503
+🔥 Possible clipping (RMS=1.28) at block 8504
+🔥 Possible clipping (RMS=1.10) at block 8505
+🔥 Possible clipping (RMS=1.44) at block 8525
+🔥 Possible clipping (RMS=1.44) at block 8526
+🔥 Possible clipping (RMS=1.44) at block 8527
+🔥 Possible clipping (RMS=1.44) at block 8528
+🔥 Possible clipping (RMS=1.44) at block 8529
+🔥 Possible clipping (RMS=1.44) at block 8530
+🔥 Possible clipping (RMS=1.44) at block 8531
+🔥 Possible clipping (RMS=1.44) at block 8532
+🔥 Possible clipping (RMS=1.43) at block 8533
+🔥 Possible clipping (RMS=1.43) at block 8534
+🔥 Possible clipping (RMS=1.43) at block 8535
+🔥 Possible clipping (RMS=1.25) at block 8536
+🔥 Possible clipping (RMS=1.19) at block 18891
+🔥 Possible clipping (RMS=1.17) at block 18892
+🔥 Possible clipping (RMS=1.13) at block 19055
+🔥 Possible clipping (RMS=1.39) at block 19056
+🔥 Possible clipping (RMS=1.39) at block 19057
+🔥 Possible clipping (RMS=1.39) at block 19058
+🔥 Possible clipping (RMS=1.39) at block 19059
+🔥 Possible clipping (RMS=1.49) at block 19060
+🔥 Possible clipping (RMS=1.59) at block 19061
+🔥 Possible clipping (RMS=1.57) at block 19062
+🔥 Possible clipping (RMS=1.56) at block 19063
+🔥 Possible clipping (RMS=1.36) at block 19064
+🔥 Possible clipping (RMS=1.10) at block 19065
+🔥 Possible clipping (RMS=1.17) at block 19102
+🔥 Possible clipping (RMS=1.17) at block 19103
+🔥 Possible clipping (RMS=1.17) at block 19104
+🔥 Possible clipping (RMS=1.17) at block 19105
+🔥 Possible clipping (RMS=1.17) at block 19106
+🔥 Possible clipping (RMS=1.17) at block 19107
+🔥 Possible clipping (RMS=1.17) at block 19108
+🔥 Possible clipping (RMS=1.18) at block 19109
+🔥 Possible clipping (RMS=1.43) at block 19110
+🔥 Possible clipping (RMS=1.51) at block 19111
+🔥 Possible clipping (RMS=1.41) at block 19112
+🔥 Possible clipping (RMS=1.36) at block 19113
+🔥 Possible clipping (RMS=1.16) at block 19114
+🔥 Possible clipping (RMS=1.37) at block 19159
+🔥 Possible clipping (RMS=1.63) at block 19160
+🔥 Possible clipping (RMS=1.63) at block 19161
+🔥 Possible clipping (RMS=1.47) at block 19162
+🔥 Possible clipping (RMS=1.27) at block 19163
+🔥 Possible clipping (RMS=1.17) at block 19164
+🔥 Possible clipping (RMS=1.11) at block 19165
+🔥 Possible clipping (RMS=1.13) at block 20409
+🔥 Possible clipping (RMS=1.10) at block 26065
+🔥 Possible clipping (RMS=1.36) at block 26066
+🔥 Possible clipping (RMS=1.36) at block 26067
+🔥 Possible clipping (RMS=1.36) at block 26068
+🔥 Possible clipping (RMS=1.36) at block 26069
+🔥 Possible clipping (RMS=1.36) at block 26070
+🔥 Possible clipping (RMS=1.18) at block 26071
+🔥 Possible clipping (RMS=1.41) at block 26962
+🔥 Possible clipping (RMS=1.41) at block 26963
+🔥 Possible clipping (RMS=1.42) at block 26964
+🔥 Possible clipping (RMS=1.42) at block 26965
+🔥 Possible clipping (RMS=1.42) at block 26966
+🔥 Possible clipping (RMS=1.42) at block 26967
+🔥 Possible clipping (RMS=1.41) at block 26968
+🔥 Possible clipping (RMS=1.41) at block 26969
+🔥 Possible clipping (RMS=1.41) at block 26970
+🔥 Possible clipping (RMS=1.41) at block 26971
+🔥 Possible clipping (RMS=1.23) at block 26972
+🔥 Possible clipping (RMS=1.12) at block 41587
+🔥 Possible clipping (RMS=1.15) at block 41588
+🔥 Possible clipping (RMS=1.13) at block 41589
+🔥 Possible clipping (RMS=1.13) at block 41590
+🔥 Possible clipping (RMS=1.15) at block 41591
+🔥 Possible clipping (RMS=1.12) at block 41592
+🔥 Possible clipping (RMS=1.15) at block 41593
+🔥 Possible clipping (RMS=1.13) at block 41594
+🔥 Possible clipping (RMS=1.13) at block 41595
+🔥 Possible clipping (RMS=1.15) at block 41596
+🔥 Possible clipping (RMS=1.12) at block 41597
+🔥 Possible clipping (RMS=1.15) at block 41598
+🔥 Possible clipping (RMS=1.13) at block 41599
+🔥 Possible clipping (RMS=1.13) at block 41600
+🔥 Possible clipping (RMS=1.15) at block 41601
+🔥 Possible clipping (RMS=1.13) at block 41602
+🔥 Possible clipping (RMS=1.16) at block 41603
+🔥 Possible clipping (RMS=1.15) at block 41604
+🔥 Possible clipping (RMS=1.15) at block 41605
+🔥 Possible clipping (RMS=1.17) at block 41606
+🔥 Possible clipping (RMS=1.14) at block 41607
+🔥 Possible clipping (RMS=1.17) at block 41608
+🔥 Possible clipping (RMS=1.16) at block 41609
+🔥 Possible clipping (RMS=1.16) at block 41610
+🔥 Possible clipping (RMS=1.19) at block 41611
+🔥 Possible clipping (RMS=1.16) at block 41612
+🔥 Possible clipping (RMS=1.14) at block 41651
+🔥 Possible clipping (RMS=1.16) at block 41652
+🔥 Possible clipping (RMS=1.13) at block 41653
+🔥 Possible clipping (RMS=1.16) at block 41654
+🔥 Possible clipping (RMS=1.14) at block 41655
+🔥 Possible clipping (RMS=1.14) at block 41656
+🔥 Possible clipping (RMS=1.16) at block 41657
+🔥 Possible clipping (RMS=1.13) at block 41658
+🔥 Possible clipping (RMS=1.16) at block 41659
+🔥 Possible clipping (RMS=1.14) at block 41660
+🔥 Possible clipping (RMS=1.14) at block 41661
+🔥 Possible clipping (RMS=1.14) at block 41831
+🔥 Possible clipping (RMS=1.11) at block 41832
+🔥 Possible clipping (RMS=1.14) at block 41833
+🔥 Possible clipping (RMS=1.12) at block 41834
+🔥 Possible clipping (RMS=1.12) at block 41835
+🔥 Possible clipping (RMS=1.20) at block 41872
+🔥 Possible clipping (RMS=1.32) at block 41873
+🔥 Possible clipping (RMS=1.36) at block 41874
+🔥 Possible clipping (RMS=1.36) at block 41875
+🔥 Possible clipping (RMS=1.39) at block 41876
+🔥 Possible clipping (RMS=1.30) at block 42956
+🔥 Possible clipping (RMS=1.18) at block 42958
+🔥 Possible clipping (RMS=1.34) at block 42961
+🔥 Possible clipping (RMS=1.13) at block 43158
+🔥 Possible clipping (RMS=1.14) at block 43162
+🔥 Possible clipping (RMS=1.14) at block 43166
+🔥 Possible clipping (RMS=1.14) at block 43170
+🔥 Possible clipping (RMS=1.14) at block 43174
+🔥 Possible clipping (RMS=1.17) at block 43177
+🔥 Possible clipping (RMS=1.40) at block 43178
+🔥 Possible clipping (RMS=1.44) at block 43180
+🔥 Possible clipping (RMS=1.52) at block 43182
+🔥 Possible clipping (RMS=1.28) at block 43184
+🔥 Possible clipping (RMS=1.24) at block 43185
+🔥 Possible clipping (RMS=1.23) at block 43186
+🔥 Possible clipping (RMS=1.41) at block 43187
+🔥 Possible clipping (RMS=1.44) at block 43189
+🔥 Possible clipping (RMS=1.16) at block 43190
+🔥 Possible clipping (RMS=1.46) at block 43191
+🔥 Possible clipping (RMS=1.75) at block 43194
+🔥 Possible clipping (RMS=1.36) at block 43195
+🔥 Possible clipping (RMS=1.32) at block 43196
+🔥 Possible clipping (RMS=1.83) at block 43198
+🔥 Possible clipping (RMS=1.42) at block 43199
+🔥 Possible clipping (RMS=1.52) at block 43200
+🔥 Possible clipping (RMS=1.54) at block 43201
+🔥 Possible clipping (RMS=1.35) at block 43202
+🔥 Possible clipping (RMS=2.12) at block 43203
+🔥 Possible clipping (RMS=1.46) at block 43205
+🔥 Possible clipping (RMS=1.57) at block 43206
+🔥 Possible clipping (RMS=2.03) at block 43207
+🔥 Possible clipping (RMS=1.30) at block 43208
+🔥 Possible clipping (RMS=1.30) at block 43209
+🔥 Possible clipping (RMS=1.61) at block 43210
+🔥 Possible clipping (RMS=1.76) at block 43211
+🔥 Possible clipping (RMS=1.76) at block 43212
+🔥 Possible clipping (RMS=1.37) at block 43213
+🔥 Possible clipping (RMS=1.11) at block 43214
+🔥 Possible clipping (RMS=2.05) at block 43215
+🔥 Possible clipping (RMS=1.53) at block 43216
+🔥 Possible clipping (RMS=1.58) at block 43217
+🔥 Possible clipping (RMS=2.00) at block 43219
+🔥 Possible clipping (RMS=1.34) at block 43220
+🔥 Possible clipping (RMS=1.42) at block 43221
+🔥 Possible clipping (RMS=1.73) at block 43223
+🔥 Possible clipping (RMS=1.38) at block 43224
+🔥 Possible clipping (RMS=1.17) at block 43225
+🔥 Possible clipping (RMS=1.21) at block 43226
+🔥 Possible clipping (RMS=1.40) at block 43227
+🔥 Possible clipping (RMS=1.17) at block 43228
+🔥 Possible clipping (RMS=1.22) at block 43276
+🔥 Possible clipping (RMS=1.19) at block 43278
+🔥 Possible clipping (RMS=1.14) at block 43280
+🔥 Possible clipping (RMS=1.18) at block 43384
+🔥 Possible clipping (RMS=1.19) at block 43385
+🔥 Possible clipping (RMS=1.18) at block 43386
+🔥 Possible clipping (RMS=1.30) at block 43387
+🔥 Possible clipping (RMS=1.26) at block 43388
+🔥 Possible clipping (RMS=1.15) at block 43389
+🔥 Possible clipping (RMS=1.20) at block 43390
+🔥 Possible clipping (RMS=1.29) at block 43391
+🔥 Possible clipping (RMS=1.25) at block 43392
+🔥 Possible clipping (RMS=1.12) at block 43393
+🔥 Possible clipping (RMS=1.19) at block 43394
+🔥 Possible clipping (RMS=1.33) at block 43395
+🔥 Possible clipping (RMS=1.23) at block 43396
+🔥 Possible clipping (RMS=1.23) at block 43398
+🔥 Possible clipping (RMS=1.32) at block 43399
+🔥 Possible clipping (RMS=1.19) at block 43400
+🔥 Possible clipping (RMS=1.10) at block 43401
+🔥 Possible clipping (RMS=1.23) at block 43402
+🔥 Possible clipping (RMS=1.32) at block 43403
+🔥 Possible clipping (RMS=1.19) at block 43404
+🔥 Possible clipping (RMS=1.11) at block 43405
+🔥 Possible clipping (RMS=1.27) at block 43406
+🔥 Possible clipping (RMS=1.31) at block 43407
+🔥 Possible clipping (RMS=1.16) at block 43408
+🔥 Possible clipping (RMS=1.15) at block 43409
+🔥 Possible clipping (RMS=1.28) at block 43410
+🔥 Possible clipping (RMS=1.21) at block 43411
+🔥 Possible clipping (RMS=1.18) at block 43596
+🔥 Possible clipping (RMS=1.11) at block 43599
+🔥 Possible clipping (RMS=1.24) at block 43601
+🔥 Possible clipping (RMS=1.13) at block 44040
+🔥 Possible clipping (RMS=1.16) at block 44517
+🔥 Possible clipping (RMS=1.17) at block 44520
+🔥 Possible clipping (RMS=1.30) at block 44522
+🔥 Possible clipping (RMS=1.13) at block 44525
+🔥 Possible clipping (RMS=1.26) at block 44570
+🔥 Possible clipping (RMS=1.30) at block 44572
+🔥 Possible clipping (RMS=1.16) at block 44575
+🔥 Possible clipping (RMS=1.31) at block 44577
+🔥 Possible clipping (RMS=1.40) at block 44580
+🔥 Possible clipping (RMS=1.27) at block 44581
+🔥 Possible clipping (RMS=1.56) at block 44584
+🔥 Possible clipping (RMS=1.26) at block 44586
+🔥 Possible clipping (RMS=1.26) at block 44587
+🔥 Possible clipping (RMS=1.40) at block 44589
+🔥 Possible clipping (RMS=1.24) at block 44592
+🔥 Possible clipping (RMS=1.26) at block 44594
+🔥 Possible clipping (RMS=1.31) at block 44597
+🔥 Possible clipping (RMS=1.23) at block 44599
+🔥 Possible clipping (RMS=1.30) at block 44602
+🔥 Possible clipping (RMS=1.19) at block 44604
+🔥 Possible clipping (RMS=1.61) at block 44607
+🔥 Possible clipping (RMS=1.28) at block 44609
+🔥 Possible clipping (RMS=1.32) at block 44610
+🔥 Possible clipping (RMS=1.76) at block 44612
+🔥 Possible clipping (RMS=1.56) at block 44614
+🔥 Possible clipping (RMS=1.45) at block 44617
+🔥 Possible clipping (RMS=1.53) at block 44619
+🔥 Possible clipping (RMS=1.11) at block 44620
+🔥 Possible clipping (RMS=1.22) at block 44621
+🔥 Possible clipping (RMS=1.14) at block 44622
+🔥 Possible clipping (RMS=1.21) at block 44623
+🔥 Possible clipping (RMS=1.12) at block 44624
+🔥 Possible clipping (RMS=1.51) at block 44625
+🔥 Possible clipping (RMS=1.50) at block 44627
+🔥 Possible clipping (RMS=1.57) at block 44630
+🔥 Possible clipping (RMS=1.76) at block 44632
+🔥 Possible clipping (RMS=1.38) at block 44634
+🔥 Possible clipping (RMS=1.21) at block 44635
+🔥 Possible clipping (RMS=1.60) at block 44637
+🔥 Possible clipping (RMS=1.50) at block 44639
+🔥 Possible clipping (RMS=1.13) at block 44641
+🔥 Possible clipping (RMS=1.25) at block 44642
+🔥 Possible clipping (RMS=1.38) at block 44643
+🔥 Possible clipping (RMS=1.38) at block 44644
+🔥 Possible clipping (RMS=1.69) at block 44645
+🔥 Possible clipping (RMS=1.12) at block 44646
+🔥 Possible clipping (RMS=1.38) at block 44647
+🔥 Possible clipping (RMS=1.54) at block 44648
+🔥 Possible clipping (RMS=1.85) at block 44650
+🔥 Possible clipping (RMS=1.79) at block 44652
+🔥 Possible clipping (RMS=1.24) at block 44653
+🔥 Possible clipping (RMS=1.33) at block 44654
+🔥 Possible clipping (RMS=1.53) at block 44655
+🔥 Possible clipping (RMS=1.81) at block 44657
+🔥 Possible clipping (RMS=1.17) at block 44658
+🔥 Possible clipping (RMS=1.48) at block 44659
+🔥 Possible clipping (RMS=1.33) at block 44660
+🔥 Possible clipping (RMS=1.39) at block 44661
+🔥 Possible clipping (RMS=1.46) at block 44662
+🔥 Possible clipping (RMS=1.43) at block 44663
+🔥 Possible clipping (RMS=1.42) at block 44664
+🔥 Possible clipping (RMS=1.49) at block 44665
+🔥 Possible clipping (RMS=1.37) at block 44666
+🔥 Possible clipping (RMS=1.23) at block 44667
+🔥 Possible clipping (RMS=1.57) at block 44668
+🔥 Possible clipping (RMS=1.13) at block 44669
+🔥 Possible clipping (RMS=1.84) at block 44670
+🔥 Possible clipping (RMS=1.63) at block 44672
+🔥 Possible clipping (RMS=1.22) at block 44673
+🔥 Possible clipping (RMS=1.25) at block 44674
+🔥 Possible clipping (RMS=1.76) at block 44675
+🔥 Possible clipping (RMS=1.78) at block 44677
+🔥 Possible clipping (RMS=1.15) at block 44678
+🔥 Possible clipping (RMS=1.53) at block 44679
+🔥 Possible clipping (RMS=1.37) at block 44680
+🔥 Possible clipping (RMS=1.14) at block 44681
+🔥 Possible clipping (RMS=1.67) at block 44682
+🔥 Possible clipping (RMS=1.43) at block 44683
+🔥 Possible clipping (RMS=1.43) at block 44684
+🔥 Possible clipping (RMS=1.33) at block 44685
+🔥 Possible clipping (RMS=1.29) at block 44686
+🔥 Possible clipping (RMS=1.42) at block 44687
+🔥 Possible clipping (RMS=1.68) at block 44688
+🔥 Possible clipping (RMS=1.79) at block 44690
+🔥 Possible clipping (RMS=1.55) at block 44692
+🔥 Possible clipping (RMS=1.52) at block 44693
+🔥 Possible clipping (RMS=1.91) at block 44695
+🔥 Possible clipping (RMS=1.78) at block 44697
+🔥 Possible clipping (RMS=1.12) at block 44698
+🔥 Possible clipping (RMS=1.12) at block 44699
+🔥 Possible clipping (RMS=1.72) at block 44700
+🔥 Possible clipping (RMS=1.27) at block 44701
+🔥 Possible clipping (RMS=1.59) at block 44702
+🔥 Possible clipping (RMS=1.29) at block 44703
+🔥 Possible clipping (RMS=1.32) at block 44704
+🔥 Possible clipping (RMS=1.53) at block 44705
+🔥 Possible clipping (RMS=1.45) at block 44706
+🔥 Possible clipping (RMS=1.11) at block 44707
+🔥 Possible clipping (RMS=1.70) at block 44708
+🔥 Possible clipping (RMS=1.12) at block 44709
+🔥 Possible clipping (RMS=1.74) at block 44710
+🔥 Possible clipping (RMS=1.14) at block 44711
+🔥 Possible clipping (RMS=1.59) at block 44712
+🔥 Possible clipping (RMS=1.25) at block 44713
+🔥 Possible clipping (RMS=1.82) at block 44715
+🔥 Possible clipping (RMS=1.78) at block 44717
+🔥 Possible clipping (RMS=1.71) at block 44719
+🔥 Possible clipping (RMS=1.18) at block 44720
+🔥 Possible clipping (RMS=1.47) at block 44721
+🔥 Possible clipping (RMS=1.53) at block 44722
+🔥 Possible clipping (RMS=1.29) at block 44723
+🔥 Possible clipping (RMS=1.26) at block 44724
+🔥 Possible clipping (RMS=1.46) at block 44725
+🔥 Possible clipping (RMS=1.40) at block 44726
+🔥 Possible clipping (RMS=1.61) at block 44727
+🔥 Possible clipping (RMS=1.15) at block 44728
+🔥 Possible clipping (RMS=1.82) at block 44729
+🔥 Possible clipping (RMS=1.66) at block 44731
+🔥 Possible clipping (RMS=1.17) at block 44732
+🔥 Possible clipping (RMS=1.54) at block 44733
+🔥 Possible clipping (RMS=1.48) at block 44734
+🔥 Possible clipping (RMS=1.70) at block 44736
+🔥 Possible clipping (RMS=1.80) at block 44738
+🔥 Possible clipping (RMS=1.17) at block 44739
+🔥 Possible clipping (RMS=1.59) at block 44740
+🔥 Possible clipping (RMS=1.39) at block 44741
+🔥 Possible clipping (RMS=1.44) at block 44742
+🔥 Possible clipping (RMS=1.41) at block 44743
+🔥 Possible clipping (RMS=1.31) at block 44744
+🔥 Possible clipping (RMS=1.44) at block 44745
+🔥 Possible clipping (RMS=1.31) at block 44746
+🔥 Possible clipping (RMS=1.60) at block 44747
+🔥 Possible clipping (RMS=1.38) at block 44748
+🔥 Possible clipping (RMS=1.76) at block 44750
+🔥 Possible clipping (RMS=1.81) at block 44752
+🔥 Possible clipping (RMS=1.71) at block 44754
+🔥 Possible clipping (RMS=1.13) at block 44755
+🔥 Possible clipping (RMS=1.61) at block 44756
+🔥 Possible clipping (RMS=1.27) at block 44757
+🔥 Possible clipping (RMS=1.53) at block 44758
+🔥 Possible clipping (RMS=1.37) at block 44759
+🔥 Possible clipping (RMS=1.43) at block 44760
+🔥 Possible clipping (RMS=1.39) at block 44761
+🔥 Possible clipping (RMS=1.28) at block 44762
+🔥 Possible clipping (RMS=1.50) at block 44763
+🔥 Possible clipping (RMS=1.21) at block 44764
+🔥 Possible clipping (RMS=1.58) at block 44765
+🔥 Possible clipping (RMS=1.25) at block 44766
+🔥 Possible clipping (RMS=1.53) at block 44767
+🔥 Possible clipping (RMS=1.57) at block 44768
+🔥 Possible clipping (RMS=1.73) at block 44770
+🔥 Possible clipping (RMS=1.58) at block 44772
+🔥 Possible clipping (RMS=1.41) at block 44773
+🔥 Possible clipping (RMS=1.35) at block 44774
+🔥 Possible clipping (RMS=1.49) at block 44775
+🔥 Possible clipping (RMS=1.33) at block 44776
+🔥 Possible clipping (RMS=1.38) at block 44777
+🔥 Possible clipping (RMS=1.45) at block 44778
+🔥 Possible clipping (RMS=1.39) at block 44779
+🔥 Possible clipping (RMS=1.61) at block 44780
+🔥 Possible clipping (RMS=1.69) at block 44782
+🔥 Possible clipping (RMS=1.38) at block 44783
+🔥 Possible clipping (RMS=1.34) at block 44784
+🔥 Possible clipping (RMS=1.60) at block 44785
+🔥 Possible clipping (RMS=1.68) at block 44787
+🔥 Possible clipping (RMS=1.14) at block 44788
+🔥 Possible clipping (RMS=1.59) at block 44789
+🔥 Possible clipping (RMS=1.24) at block 44790
+🔥 Possible clipping (RMS=1.46) at block 44791
+🔥 Possible clipping (RMS=1.43) at block 44792
+🔥 Possible clipping (RMS=1.42) at block 44793
+🔥 Possible clipping (RMS=1.40) at block 44794
+🔥 Possible clipping (RMS=1.56) at block 44795
+🔥 Possible clipping (RMS=1.61) at block 44797
+🔥 Possible clipping (RMS=1.56) at block 44799
+🔥 Possible clipping (RMS=1.58) at block 44800
+🔥 Possible clipping (RMS=1.73) at block 44802
+🔥 Possible clipping (RMS=1.59) at block 44804
+🔥 Possible clipping (RMS=1.46) at block 44805
+🔥 Possible clipping (RMS=1.50) at block 44806
+🔥 Possible clipping (RMS=1.29) at block 44807
+🔥 Possible clipping (RMS=1.48) at block 44808
+🔥 Possible clipping (RMS=1.28) at block 44809
+🔥 Possible clipping (RMS=1.43) at block 44810
+🔥 Possible clipping (RMS=1.43) at block 44811
+🔥 Possible clipping (RMS=1.33) at block 44812
+🔥 Possible clipping (RMS=1.67) at block 44813
+🔥 Possible clipping (RMS=1.74) at block 44815
+🔥 Possible clipping (RMS=1.11) at block 44816
+🔥 Possible clipping (RMS=1.58) at block 44817
+🔥 Possible clipping (RMS=1.46) at block 44818
+🔥 Possible clipping (RMS=1.39) at block 44819
+🔥 Possible clipping (RMS=1.49) at block 44820
+🔥 Possible clipping (RMS=1.33) at block 44821
+🔥 Possible clipping (RMS=1.44) at block 44822
+🔥 Possible clipping (RMS=1.39) at block 44823
+🔥 Possible clipping (RMS=1.50) at block 44824
+🔥 Possible clipping (RMS=1.23) at block 44825
+🔥 Possible clipping (RMS=1.60) at block 44826
+🔥 Possible clipping (RMS=1.71) at block 44828
+🔥 Possible clipping (RMS=1.79) at block 44830
+🔥 Possible clipping (RMS=1.85) at block 44832
+🔥 Possible clipping (RMS=1.64) at block 44834
+🔥 Possible clipping (RMS=1.34) at block 44836
+
+[Report written to] /Users/foster/MIDIControl001/report_summary.txt
