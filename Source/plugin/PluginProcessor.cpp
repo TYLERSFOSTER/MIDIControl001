@@ -150,6 +150,8 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
                 default:
                     break;
             }
+
+            voiceManager_.handleController(cc, norm);
         }
 
         if      (msg.isNoteOn())  voiceManager_.handleNoteOn (msg.getNoteNumber(), msg.getFloatVelocity());

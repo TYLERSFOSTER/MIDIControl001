@@ -3,7 +3,7 @@
 #include <fstream>
 
 // ============================================================
-// Step 7 + Phase 4-F-02: VoiceA implementation with diagnostics
+// VoiceA: MIDI-note baseline pitch + persistent CC detune
 // ============================================================
 
 void VoiceA::prepare(double sampleRate)
@@ -12,18 +12,18 @@ void VoiceA::prepare(double sampleRate)
     env_.prepare(sampleRate);
 }
 
-void VoiceA::noteOn(const ParameterSnapshot& snapshot, int midiNote, float velocity)
+void VoiceA::noteOn(const ParameterSnapshot& snapshot, int midiNote, float /*velocity*/)
 {
-    const float defaultFreq = 440.0f;
-    const float midiFreq = defaultFreq * std::pow(2.0f, (midiNote - 69) / 12.0f);
+    // --- Baseline pitch from MIDI note (A4=69 -> 440 Hz)
+    const float baseHz = midiNoteToHz(midiNote);
 
-    const float freqHz = std::fabs(snapshot.oscFreq - defaultFreq) > 1e-3f
-        ? snapshot.oscFreq
-        : midiFreq;
+    // --- Apply persistent detune from CC5 (in semitones)
+    const float freqHz = applyDetuneSemis(baseHz, detuneSemis_);
 
-    DBG("VoiceA::noteOn -> midiNote=" << midiNote
-        << " snapshot.oscFreq=" << snapshot.oscFreq
-        << "  => freqHz=" << freqHz);
+    DBG("VoiceA::noteOn midiNote=" << midiNote
+        << " baseHz=" << baseHz
+        << " detuneSemis=" << detuneSemis_
+        << " => freqHz=" << freqHz);
 
     osc_.setFrequency(freqHz);
     env_.setAttack(snapshot.envAttack);
@@ -32,8 +32,8 @@ void VoiceA::noteOn(const ParameterSnapshot& snapshot, int midiNote, float veloc
     env_.noteOn();
 
     active_ = true;
-    note_ = midiNote;
-    level_ = 0.0f;
+    note_   = midiNote;
+    level_  = 0.0f;
 }
 
 void VoiceA::noteOff()
@@ -42,8 +42,7 @@ void VoiceA::noteOff()
 }
 
 bool VoiceA::isActive() const { return active_; }
-
-int VoiceA::getNote() const noexcept { return note_; }
+int  VoiceA::getNote() const noexcept { return note_; }
 
 void VoiceA::render(float* buffer, int numSamples)
 {
@@ -53,8 +52,13 @@ void VoiceA::render(float* buffer, int numSamples)
     float blockPeak = 0.0f;
     float blockSumSq = 0.0f;
 
-    float envStart = env_.getCurrentValue();
-    float envEnd   = 0.0f;
+    const float envStart = env_.getCurrentValue();
+    float envEnd   = envStart;
+
+    const float  freqAtBlock = osc_.getFrequency();
+    const double atkInc      = env_.getAttackInc();
+    const double relCoef     = env_.getReleaseCoef();
+    const double relSec      = env_.getReleaseSec();
 
     for (int i = 0; i < numSamples; ++i)
     {
@@ -72,6 +76,7 @@ void VoiceA::render(float* buffer, int numSamples)
 
     level_ = blockPeak;
 
+    // voice auto-deactivate on tail end
     if (!env_.isActive() || blockPeak < 1e-3f)
     {
         active_ = false;
@@ -79,75 +84,90 @@ void VoiceA::render(float* buffer, int numSamples)
         osc_.resetPhase();
     }
 
-    const float rms = std::sqrt(blockSumSq / numSamples);
+    const float rms = std::sqrt(blockSumSq / std::max(1, numSamples));
 
-    {
-        std::ofstream log("voice_debug.txt", std::ios::app);
-        log << "[VoiceA] note=" << note_
-            << " env(start→end)=" << envStart << "→" << envEnd
-            << " blockRMS=" << rms
-            << " peak=" << blockPeak
-            << " active=" << (active_ ? "Y" : "N")
-            << "\n";
-    }
-
-    DBG("[VoiceA] note=" << note_
+    DBG("[VoiceA@render] note=" << note_
+        << " freqHz=" << freqAtBlock
         << " env(start→end)=" << envStart << "→" << envEnd
+        << " atkInc=" << atkInc
+        << " relSec=" << relSec
         << " blockRMS=" << rms
         << " peak=" << blockPeak
         << " active=" << (active_ ? "Y" : "N"));
+
+    // optional file log
+    std::ofstream log("voice_debug.txt", std::ios::app);
+    log << "[VoiceA@render] note=" << note_
+        << " freqHz=" << freqAtBlock
+        << " env(start→end)=" << envStart << "→" << envEnd
+        << " atkInc=" << atkInc
+        << " relSec=" << relSec
+        << " blockRMS=" << rms
+        << " peak=" << blockPeak
+        << " active=" << (active_ ? "Y" : "N")
+        << "\n";
 }
 
 void VoiceA::updateParams(const VoiceParams& vp)
 {
-    // ============================================================
-    // FIX: prevent overwriting per-voice pitch during active notes
-    // ============================================================
-    if (active_)
-        DBG("VoiceA::updateParams skipped freq for active note=" << note_);
-    else
-        osc_.setFrequency(vp.oscFreq);
+    // ⚠️ Do NOT set frequency here — avoids snapping to a global osc value.
+    // Keep frequency governed by (MIDI note ⨉ detune), set at noteOn and by CC5 live updates.
 
-    // Envelope parameters remain safely modulatable in real time
     env_.setAttack(vp.envAttack);
     env_.setRelease(vp.envRelease);
 }
 
 float VoiceA::getCurrentLevel() const { return level_; }
 
-// ============================================================
-// Phase 4-F-02: Per-voice controller mapping (CC3–CC5)
-// ============================================================
 void VoiceA::handleController(int cc, float norm)
 {
+    // Throttle duplicate spam
+    static float lastAttack = -1.0f;
+    static float lastRelease = -1.0f;
+    static float lastHz = -1.0f;
+    constexpr float epsA = 0.005f;
+    constexpr float epsR = 0.05f;
+    constexpr float epsF = 2.0f; // report only if live-freq moves ~>2 Hz
+
     switch (cc)
     {
-        case 3: // Attack
+        case 3: // Attack (perceptual 1 ms → 2 s)
         {
-            float attack = 0.001f + 1.999f * norm; // 1 ms–2 s
+            const float attack = 0.001f * std::pow(2000.0f, norm);
             env_.setAttack(attack);
-            DBG("[CC3] attack=" << attack);
+            if (std::fabs(attack - lastAttack) > epsA) {
+                DBG("[CC3] attack=" << attack);
+                lastAttack = attack;
+            }
             break;
         }
-
-        case 4: // Release
+        case 4: // Release (perceptual 20 ms → 5 s)
         {
-            float release = 0.01f + 4.99f * norm; // 10 ms–5 s
+            const float release = 0.020f * std::pow(250.0f, norm);
             env_.setRelease(release);
-            DBG("[CC4] release=" << release);
+            if (std::fabs(release - lastRelease) > epsR) {
+                DBG("[CC4] release=" << release);
+                lastRelease = release;
+            }
             break;
         }
-
-        case 5: // Oscillator frequency sweep
+        case 5: // Pitch detune in semitones (±12 semis example)
         {
-            float base = 440.0f;   // A4
-            float range = 2000.0f; // ±2 kHz sweep
-            float hz = base + range * (norm - 0.5f);
-            osc_.setFrequency(hz);
-            DBG("[CC5] oscFreq=" << hz);
+            detuneSemis_ = -12.0f + 24.0f * norm;
+
+            // If currently active, update oscillator live (recompute from current note)
+            if (active_ && note_ >= 0) {
+                const float hz = applyDetuneSemis(currentNoteBaseHz(), detuneSemis_);
+                osc_.setFrequency(hz);
+                if (std::fabs(hz - lastHz) > epsF) {
+                    DBG("[CC5] detuneSemis=" << detuneSemis_ << " => oscFreq=" << hz);
+                    lastHz = hz;
+                }
+            } else {
+                DBG("[CC5] detuneSemis=" << detuneSemis_);
+            }
             break;
         }
-
         default:
             break;
     }
