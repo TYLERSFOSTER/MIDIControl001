@@ -45,6 +45,14 @@ public:
     {
         static ParameterSnapshot snapshot;
         snapshot = makeSnapshot_();
+
+        // ============================================================
+        // Phase 5-C.4 — Persistent CC Cache Re-application
+        // ============================================================
+        snapshot.envAttack  = ccCache.envAttack;
+        snapshot.envRelease = ccCache.envRelease;
+        snapshot.oscFreq    = ccCache.oscFreq;
+
         currentSnapshot_ = &snapshot;
 
         for (int i = 0; i < static_cast<int>(voices_.size()) && i < NUM_VOICES; ++i)
@@ -70,6 +78,10 @@ public:
         }
 
         (*it)->noteOn(*currentSnapshot_, midiNote, velocity);
+
+        DBG("[VM] NoteOn midiNote=" << midiNote);
+        std::cout << "[VM] NoteOn midiNote=" << midiNote << std::endl;
+
         globalGain_.setTargetValue(1.0f);
     }
 
@@ -86,6 +98,40 @@ public:
         {
             globalGain_.setTargetValue(0.0f);
         }
+    }
+
+    // ============================================================
+    // Phase 5-C.4 — Persistent CC Cache + Dispatch
+    // ============================================================
+    void handleController(int cc, float norm)
+    {
+        std::ofstream log("voice_debug.txt", std::ios::app);
+        if (log.is_open())
+            log << "dispatch cc=" << cc << " norm=" << norm << std::endl;
+
+        std::cout << "[VoiceManager] dispatch cc=" << cc << " norm=" << norm << std::endl;
+        DBG("dispatch cc=" << cc << " norm=" << norm);
+
+        // ✅ Cache CC values for future snapshots
+        switch (cc)
+        {
+            case 3: // Attack: 1 ms → 2 s exponential
+                ccCache.envAttack = std::exp(juce::jmap(norm, std::log(0.001f), std::log(2.0f)));
+                break;
+
+            case 4: // Release: 20 ms → 5 s logarithmic
+                ccCache.envRelease = std::exp(juce::jmap(norm, std::log(0.02f), std::log(5.0f)));
+                break;
+
+            case 5: // Pitch sweep unchanged
+                ccCache.oscFreq = 440.0f + 2000.0f * (norm - 0.5f);
+                break;
+
+            default: break;
+        }
+
+        for (auto& v : voices_)
+            v->handleController(cc, norm);
     }
 
     void render(float* buffer, int numSamples)
@@ -105,13 +151,11 @@ public:
         float blockSumSq = std::inner_product(buffer, buffer + numSamples, buffer, 0.0f);
         float preGainRMS = std::sqrt(blockSumSq / numSamples);
 
-        // --- Step 13: Adaptive RMS controller ---
         const float targetRMS   = 0.26f;
         const float eps         = 1e-6f;
         const float measured    = std::max(preGainRMS, eps);
         const float ctrl        = juce::jlimit(0.25f, 4.0f, targetRMS / measured);
 
-        // Light IIR blend to avoid pumping
         const float prevTarget  = globalGain_.getTargetValue();
         const float blended     = 0.9f * prevTarget + 0.1f * ctrl;
         globalGain_.setTargetValue(juce::jlimit(0.25f, 4.0f, blended));
@@ -135,7 +179,6 @@ public:
             buffer[i] *= g;
         }
 
-        // === Step 12 diagnostic probe ===
         float postGainRMS = std::sqrt(std::inner_product(buffer, buffer + numSamples, buffer, 0.0f) / numSamples);
         DBG("VoiceManager: postGainRMS = " << postGainRMS);
 
@@ -147,6 +190,15 @@ private:
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
     SnapshotMaker makeSnapshot_;  // stored callback
+
+    // ============================================================
+    // Persistent CC cache (Phase 5-C.4)
+    // ============================================================
+    struct {
+        float envAttack  = 0.01f;
+        float envRelease = 0.20f;
+        float oscFreq    = 440.0f;
+    } ccCache;
 
     double sampleRate_ = 48000.0;
     juce::SmoothedValue<float> globalGain_{ 1.0f }; // clickless poly gain
