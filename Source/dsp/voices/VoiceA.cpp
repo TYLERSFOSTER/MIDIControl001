@@ -1,10 +1,9 @@
-// VoiceA.cpp
 #include "VoiceA.h"
 #include <cmath>
 #include <fstream>
 
 // ============================================================
-// Step 7: VoiceA implementation with diagnostics
+// Step 7 + Phase 4-F-02: VoiceA implementation with diagnostics
 // ============================================================
 
 void VoiceA::prepare(double sampleRate)
@@ -42,15 +41,9 @@ void VoiceA::noteOff()
     env_.noteOff();
 }
 
-bool VoiceA::isActive() const
-{
-    return active_;
-}
+bool VoiceA::isActive() const { return active_; }
 
-int VoiceA::getNote() const noexcept
-{
-    return note_;
-}
+int VoiceA::getNote() const noexcept { return note_; }
 
 void VoiceA::render(float* buffer, int numSamples)
 {
@@ -60,7 +53,7 @@ void VoiceA::render(float* buffer, int numSamples)
     float blockPeak = 0.0f;
     float blockSumSq = 0.0f;
 
-    float envStart = env_.getCurrentValue(); // assume EnvelopeA exposes this
+    float envStart = env_.getCurrentValue();
     float envEnd   = 0.0f;
 
     for (int i = 0; i < numSamples; ++i)
@@ -111,20 +104,51 @@ void VoiceA::updateParams(const VoiceParams& vp)
     // FIX: prevent overwriting per-voice pitch during active notes
     // ============================================================
     if (active_)
-    {
         DBG("VoiceA::updateParams skipped freq for active note=" << note_);
-    }
     else
-    {
         osc_.setFrequency(vp.oscFreq);
-    }
 
     // Envelope parameters remain safely modulatable in real time
     env_.setAttack(vp.envAttack);
     env_.setRelease(vp.envRelease);
 }
 
-float VoiceA::getCurrentLevel() const
+float VoiceA::getCurrentLevel() const { return level_; }
+
+// ============================================================
+// Phase 4-F-02: Per-voice controller mapping (CC3–CC5)
+// ============================================================
+void VoiceA::handleController(int cc, float norm)
 {
-    return level_;
+    switch (cc)
+    {
+        case 3: // Attack
+        {
+            float attack = 0.001f + 1.999f * norm; // 1 ms–2 s
+            env_.setAttack(attack);
+            DBG("[CC3] attack=" << attack);
+            break;
+        }
+
+        case 4: // Release
+        {
+            float release = 0.01f + 4.99f * norm; // 10 ms–5 s
+            env_.setRelease(release);
+            DBG("[CC4] release=" << release);
+            break;
+        }
+
+        case 5: // Oscillator frequency sweep
+        {
+            float base = 440.0f;   // A4
+            float range = 2000.0f; // ±2 kHz sweep
+            float hz = base + range * (norm - 0.5f);
+            osc_.setFrequency(hz);
+            DBG("[CC5] oscFreq=" << hz);
+            break;
+        }
+
+        default:
+            break;
+    }
 }
