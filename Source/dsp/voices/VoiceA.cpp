@@ -1,3 +1,4 @@
+// VoiceA.cpp
 #include "VoiceA.h"
 #include <cmath>
 #include <fstream>
@@ -59,9 +60,6 @@ void VoiceA::render(float* buffer, int numSamples)
     float blockPeak = 0.0f;
     float blockSumSq = 0.0f;
 
-    // ------------------------------------------------------------
-    // Instrumentation: track envelope and oscillator amplitude
-    // ------------------------------------------------------------
     float envStart = env_.getCurrentValue(); // assume EnvelopeA exposes this
     float envEnd   = 0.0f;
 
@@ -88,12 +86,8 @@ void VoiceA::render(float* buffer, int numSamples)
         osc_.resetPhase();
     }
 
-    // ============================================================
-    // Diagnostic RMS + envelope trace (unthrottled, per block)
-    // ============================================================
     const float rms = std::sqrt(blockSumSq / numSamples);
 
-    // Write to a file so we can read it after the test
     {
         std::ofstream log("voice_debug.txt", std::ios::app);
         log << "[VoiceA] note=" << note_
@@ -104,7 +98,6 @@ void VoiceA::render(float* buffer, int numSamples)
             << "\n";
     }
 
-    // Also print to console immediately
     DBG("[VoiceA] note=" << note_
         << " env(start→end)=" << envStart << "→" << envEnd
         << " blockRMS=" << rms
@@ -114,17 +107,21 @@ void VoiceA::render(float* buffer, int numSamples)
 
 void VoiceA::updateParams(const VoiceParams& vp)
 {
-    if (!active_)
-        return;
+    // ============================================================
+    // FIX: prevent overwriting per-voice pitch during active notes
+    // ============================================================
+    if (active_)
+    {
+        DBG("VoiceA::updateParams skipped freq for active note=" << note_);
+    }
+    else
+    {
+        osc_.setFrequency(vp.oscFreq);
+    }
 
-    osc_.setFrequency(vp.oscFreq);
+    // Envelope parameters remain safely modulatable in real time
     env_.setAttack(vp.envAttack);
     env_.setRelease(vp.envRelease);
-
-    DBG("VoiceA::updateParams() applied live: "
-        << "freq=" << vp.oscFreq
-        << " atk=" << vp.envAttack
-        << " rel=" << vp.envRelease);
 }
 
 float VoiceA::getCurrentLevel() const
