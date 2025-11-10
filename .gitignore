@@ -94,3 +94,5 @@ Makefile
 
 # --- JUCE-generated build files (safety net) ---
 JuceLibraryCode/
+voice_debug.txt
+grep_hits.txt
