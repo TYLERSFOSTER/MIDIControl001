@@ -1,8 +1,12 @@
+// [Lifecycle: Active]
+// [Subsystem: DSP/Core]
+// [Purpose: Verify JUCE SmoothedValue ramp correctness]
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <juce_dsp/juce_dsp.h>
 
-TEST_CASE("SmoothedValue ramps correctly (in-progress)") {
+TEST_CASE("SmoothedValue ramps correctly", "[dsp][core][smoothedvalue]") {
     juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> s;
     s.reset(48000, 0.01);
     s.setCurrentAndTargetValue(0.0f);

@@ -15,8 +15,16 @@ public:
     virtual void render(float* buffer, int numSamples) = 0;
 
     // State queries
-    virtual bool isActive() const = 0;
-    virtual int  getNote() const noexcept = 0;
+    virtual bool  isActive() const = 0;
+    virtual int   getNote() const noexcept = 0;
     virtual float getCurrentLevel() const = 0;
-};
 
+    // ============================================================
+    // Diagnostic stub for per-voice MIDI CC handling
+    // ============================================================
+    virtual void handleController(int cc, float norm)
+    {
+        (void)cc;
+        (void)norm;
+    }
+};

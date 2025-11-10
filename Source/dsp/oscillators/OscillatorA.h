@@ -11,6 +11,7 @@ public:
     }
 
     void setFrequency(float hz) { freq_ = hz; }
+    float getFrequency() const noexcept { return freq_; }
 
     void resetPhase() { phase_ = 0.0; }
 

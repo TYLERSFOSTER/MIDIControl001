@@ -1,0 +1,24 @@
+Source/plugin/PluginProcessor.cpp:32:    [01;31m[KDBG([m[K"releaseResources begin");
+Source/plugin/PluginProcessor.cpp:40:    [01;31m[KDBG([m[K"releaseResources end");
+Source/plugin/PluginProcessor.cpp:82:        [01;31m[KDBG([m[K"Voice" << (i + 1)
+Source/plugin/PluginProcessor.cpp:88:    [01;31m[KDBG([m[K"Snapshot built: vol=" << s.masterVolumeDb
+Source/plugin/PluginProcessor.cpp:120:        [01;31m[KDBG([m[K"MIDI message: " << msg.getDescription());
+Source/plugin/PluginProcessor.cpp:123:            [01;31m[KDBG([m[K"  NoteOn  #" << msg.getNoteNumber()
+Source/plugin/PluginProcessor.cpp:127:            [01;31m[KDBG([m[K"  Controller #" << msg.getControllerNumber()
+Source/plugin/PluginProcessor.cpp:141:                    [01;31m[KDBG([m[K"Mapped CC#1 (Mod Wheel) to masterVolume = " << norm);
+Source/plugin/PluginProcessor.cpp:147:                    [01;31m[KDBG([m[K"Mapped CC#2 (Breath) to masterMix = " << norm);
+Source/plugin/PluginProcessor.cpp:198:    [01;31m[KDBG([m[K"=== createEditor() called! Instance #" << editorCount << " ===");
+Source/params/ParamLayout.cpp:8:    [01;31m[KDBG([m[K"=== Building ParameterLayout (diagnostic single-voice) ===");
+Source/params/ParamLayout.cpp:42:    [01;31m[KDBG([m[K"=== Done Building ParameterLayout ===");
+Source/dsp/legacy/VoiceLegacy.h:45:        [01;31m[KDBG([m[K"Voice[" << note_ << "] render start, level=" << level_);
+Source/dsp/legacy/VoiceLegacy.h:61:            [01;31m[KDBG([m[K"Voice[" << note_ << "] deactivating, peak=" << blockPeak);
+Source/dsp/legacy/VoiceLegacy.h:68:        [01;31m[KDBG([m[K"Voice[" << note_ << "] still active, peak=" << blockPeak);
+Source/dsp/voices/VoiceA.cpp:24:    [01;31m[KDBG([m[K"VoiceA::noteOn -> midiNote=" << midiNote
+Source/dsp/voices/VoiceA.cpp:108:    [01;31m[KDBG([m[K"[VoiceA] note=" << note_
+Source/dsp/voices/VoiceA.cpp:124:    [01;31m[KDBG([m[K"VoiceA::updateParams() applied live: "
+Source/dsp/envelopes/EnvelopeA.cpp:42:        [01;31m[KDBG([m[K"Release start level: " << level_ << " coef: " << releaseCoef_);
+Source/dsp/envelopes/EnvelopeA.cpp:55:        [01;31m[KDBG([m[K"EnvelopeA release level=" << level_);
+Source/dsp/envelopes/EnvelopeA.cpp:84:                [01;31m[KDBG([m[K"EnvelopeA finished, level=" << level_);
+Source/dsp/envelopes/EnvelopeA.cpp:100:        [01;31m[KDBG([m[K"EnvelopeA now Idle");
+Source/dsp/VoiceManager.h:39:        [01;31m[KDBG([m[K"VoiceManager prepared " + juce::String(voices_.size()) +
+Source/dsp/VoiceManager.h:119:            [01;31m[KDBG([m[K"VoiceManager: FAILED to open voice_debug.txt");

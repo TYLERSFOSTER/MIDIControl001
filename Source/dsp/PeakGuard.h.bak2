@@ -1,0 +1,76 @@
+#pragma once
+#include <cmath>
+
+// ============================================================
+// PeakGuard — lightweight soft limiter for real-time DSP
+// ============================================================
+//
+// Design goals:
+//  • Prevent sample excursions above ±1.0 (soft knee region 0.9–1.1)
+//  • 1 ms release smoothing at 48 kHz (configurable)
+//  • No allocations, no locks, branch-minimal
+//
+// Typical usage:
+//   peakGuard_.prepare(sampleRate);
+//   for (int i = 0; i < numSamples; ++i)
+//       buffer[i] = peakGuard_.process(buffer[i]);
+//
+//   float engaged = peakGuard_.getEngagementRatio();  // diagnostics
+// ============================================================
+
+class PeakGuard {
+public:
+    PeakGuard() = default;
+
+    void prepare(double sampleRate, float releaseMs = 1.0f)
+    {
+        const float releaseTimeSec = releaseMs * 0.001f;
+        releaseCoeff_ = std::exp(-1.0f / (releaseTimeSec * static_cast<float>(sampleRate)));
+        envelope_ = 0.0f;
+        engagedSamples_ = totalSamples_ = 0;
+    }
+
+    inline float process(float x) noexcept
+    {
+        totalSamples_++;
+
+        const float absx = std::fabs(x);
+        envelope_ = (absx > envelope_) ? absx : (releaseCoeff_ * envelope_ + (1.0f - releaseCoeff_) * absx);
+
+        float gain = 1.0f;
+        if (envelope_ > kneeEnd_) {
+            // Hard limit region
+            gain = 1.0f / envelope_;
+            engagedSamples_++;
+        } else if (envelope_ > kneeStart_) {
+            // Soft knee region: quadratic easing from 1.0 → 1/envelope_
+            const float t = (envelope_ - kneeStart_) / (kneeEnd_ - kneeStart_);
+            const float gSoft = 1.0f - t * t * (1.0f - 1.0f / envelope_);
+            gain = gSoft;
+            engagedSamples_++;
+        }
+
+        return x * gain;
+    }
+
+    [[nodiscard]] float getEngagementRatio() const noexcept
+    {
+        return (totalSamples_ == 0) ? 0.0f
+                                    : static_cast<float>(engagedSamples_) / static_cast<float>(totalSamples_);
+    }
+
+    void reset() noexcept
+    {
+        envelope_ = 0.0f;
+        engagedSamples_ = totalSamples_ = 0;
+    }
+
+private:
+    float envelope_ = 0.0f;
+    float releaseCoeff_ = 0.999f;
+    float kneeStart_ = 0.9f;
+    float kneeEnd_   = 1.1f;
+
+    uint64_t engagedSamples_ = 0;
+    uint64_t totalSamples_   = 0;
+};

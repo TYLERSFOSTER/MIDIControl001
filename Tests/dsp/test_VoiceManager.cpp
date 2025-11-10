@@ -4,17 +4,22 @@ using Catch::Approx;
 
 #include "utils/dsp_metrics.h"
 #include "dsp/VoiceManager.h"
+#include "dsp/PeakGuard.h"
 #include <filesystem>
 
+// ============================================================
+// VoiceManager integration tests — Step 15 with PeakGuard
+// ============================================================
+
 TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
-    VoiceManager mgr;
+    VoiceManager mgr([] { return ParameterSnapshot{}; });
     ParameterSnapshot snap;
     snap.oscFreq = 220.0f;
     snap.envAttack = 0.001f;
     snap.envRelease = 0.05f;
 
     mgr.prepare(44100.0);
-    mgr.startBlock(snap);
+    mgr.startBlock();
 
     // trigger two notes
     mgr.handleNoteOn(60, 1.0f);
@@ -27,15 +32,17 @@ TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
     REQUIRE(std::any_of(buffer.begin(), buffer.end(),
                         [](float x) { return std::fabs(x) > 0.0f; }));
 
-    auto hash = hashBuffer(buffer);        // any stable hash fn
+    auto hash = hashBuffer(buffer);
     auto rms  = computeRMS(buffer);
     auto peak = computePeak(buffer);
     std::cout << "[DEBUG] calling writeJson()\n";
     namespace fs = std::filesystem;
-
     auto jsonPath = fs::path(__FILE__).parent_path()
                     / ".." / "baseline" / "voice_output_reference.json";
     writeJson(jsonPath.string(), hash, rms, peak);
+
+    // ensure limiter never lets samples exceed hard limit
+    REQUIRE(peak <= Approx(1.0f).margin(0.01f));
 
     // trigger note offs
     mgr.handleNoteOff(60);
@@ -56,10 +63,10 @@ TEST_CASE("VoiceManager basic polyphony", "[voicemanager]") {
 }
 
 TEST_CASE("VoiceManager voice stealing", "[voicemanager]") {
-    VoiceManager mgr;
+    VoiceManager mgr([] { return ParameterSnapshot{}; });
     ParameterSnapshot snap;
     mgr.prepare(44100.0);
-    mgr.startBlock(snap);
+    mgr.startBlock();
 
     // fill all voices
     for (int i = 0; i < VoiceManager::maxVoices; ++i)
@@ -70,6 +77,14 @@ TEST_CASE("VoiceManager voice stealing", "[voicemanager]") {
 
     std::vector<float> buf(64, 0.0f);
     mgr.render(buf.data(), (int)buf.size());
+
     REQUIRE(std::any_of(buf.begin(), buf.end(),
                         [](float x) { return std::fabs(x) > 0.0f; }));
+
+    // Verify limiter remains idle for moderate signals
+    PeakGuard pg;
+    pg.prepare(44100.0);
+    float idle = 0.25f;
+    float limited = pg.process(idle);
+    REQUIRE(limited == Approx(idle).margin(0.05f));
 }
