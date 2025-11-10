@@ -1,12 +1,12 @@
 === MIDIControl001 Session Report ===
-Blocks processed         : 45206
-Estimated duration (s)   : 482.20
-Avg RMS                  : 0.199337
+Blocks processed         : 46656
+Estimated duration (s)   : 497.66
+Avg RMS                  : 0.202210
 Max RMS                  : 2.115930
-Avg active voices        : 0.519
+Avg active voices        : 0.526
 NoteOn events            : 90
 NoteOff events           : 0
-Voice log size           : 5796.9 KB
+Voice log size           : 6046.8 KB
 Block log size           : 750.4 KB
 
 === Anomaly Diagnostics ===
@@ -223,7 +223,15 @@ Block log size           : 750.4 KB
 ⚠️ RMS flat for 6 blocks near index 43882
 ⚠️ RMS flat for 7 blocks near index 44106
 ⚠️ RMS flat for 21 blocks near index 44363
-⚠️ RMS flat for 354 blocks at end of log
+⚠️ RMS flat for 551 blocks near index 45403
+⚠️ RMS flat for 56 blocks near index 45474
+⚠️ RMS flat for 5 blocks near index 45524
+⚠️ RMS flat for 12 blocks near index 45612
+⚠️ RMS flat for 27 blocks near index 45673
+⚠️ RMS flat for 8 blocks near index 45727
+⚠️ RMS flat for 38 blocks near index 45889
+⚠️ RMS flat for 6 blocks near index 46031
+⚠️ RMS flat for 337 blocks at end of log
 🔥 Possible clipping (RMS=1.35) at block 789
 🔥 Possible clipping (RMS=1.33) at block 790
 🔥 Possible clipping (RMS=1.32) at block 791
@@ -730,5 +738,63 @@ Block log size           : 750.4 KB
 🔥 Possible clipping (RMS=1.85) at block 44832
 🔥 Possible clipping (RMS=1.64) at block 44834
 🔥 Possible clipping (RMS=1.34) at block 44836
+🔥 Possible clipping (RMS=1.11) at block 46245
+🔥 Possible clipping (RMS=1.11) at block 46246
+🔥 Possible clipping (RMS=1.32) at block 46247
+🔥 Possible clipping (RMS=1.16) at block 46248
+🔥 Possible clipping (RMS=1.25) at block 46249
+🔥 Possible clipping (RMS=1.19) at block 46250
+🔥 Possible clipping (RMS=1.25) at block 46251
+🔥 Possible clipping (RMS=1.14) at block 46252
+🔥 Possible clipping (RMS=1.25) at block 46253
+🔥 Possible clipping (RMS=1.26) at block 46254
+🔥 Possible clipping (RMS=1.25) at block 46255
+🔥 Possible clipping (RMS=1.54) at block 46256
+🔥 Possible clipping (RMS=1.15) at block 46257
+🔥 Possible clipping (RMS=1.60) at block 46258
+🔥 Possible clipping (RMS=1.35) at block 46259
+🔥 Possible clipping (RMS=1.67) at block 46260
+🔥 Possible clipping (RMS=1.88) at block 46262
+🔥 Possible clipping (RMS=1.57) at block 46263
+🔥 Possible clipping (RMS=1.64) at block 46264
+🔥 Possible clipping (RMS=1.38) at block 46265
+🔥 Possible clipping (RMS=1.73) at block 46266
+🔥 Possible clipping (RMS=1.46) at block 46267
+🔥 Possible clipping (RMS=1.60) at block 46268
+🔥 Possible clipping (RMS=1.74) at block 46269
+🔥 Possible clipping (RMS=1.46) at block 46270
+🔥 Possible clipping (RMS=1.41) at block 46271
+🔥 Possible clipping (RMS=1.70) at block 46272
+🔥 Possible clipping (RMS=1.66) at block 46273
+🔥 Possible clipping (RMS=1.48) at block 46274
+🔥 Possible clipping (RMS=1.68) at block 46275
+🔥 Possible clipping (RMS=1.35) at block 46276
+🔥 Possible clipping (RMS=1.71) at block 46277
+🔥 Possible clipping (RMS=1.57) at block 46278
+🔥 Possible clipping (RMS=1.84) at block 46279
+🔥 Possible clipping (RMS=1.90) at block 46281
+🔥 Possible clipping (RMS=1.56) at block 46282
+🔥 Possible clipping (RMS=1.64) at block 46283
+🔥 Possible clipping (RMS=1.37) at block 46284
+🔥 Possible clipping (RMS=1.75) at block 46285
+🔥 Possible clipping (RMS=1.54) at block 46286
+🔥 Possible clipping (RMS=1.57) at block 46287
+🔥 Possible clipping (RMS=1.72) at block 46288
+🔥 Possible clipping (RMS=1.39) at block 46289
+🔥 Possible clipping (RMS=1.59) at block 46290
+🔥 Possible clipping (RMS=1.63) at block 46291
+🔥 Possible clipping (RMS=1.51) at block 46292
+🔥 Possible clipping (RMS=1.54) at block 46293
+🔥 Possible clipping (RMS=1.76) at block 46294
+🔥 Possible clipping (RMS=1.43) at block 46295
+🔥 Possible clipping (RMS=1.49) at block 46296
+🔥 Possible clipping (RMS=1.67) at block 46297
+🔥 Possible clipping (RMS=1.81) at block 46298
+🔥 Possible clipping (RMS=1.12) at block 46299
+🔥 Possible clipping (RMS=1.78) at block 46300
+🔥 Possible clipping (RMS=1.52) at block 46301
+🔥 Possible clipping (RMS=1.72) at block 46302
+🔥 Possible clipping (RMS=1.27) at block 46303
+🔥 Possible clipping (RMS=1.67) at block 46304
 
 [Report written to] /Users/foster/MIDIControl001/report_summary.txt
