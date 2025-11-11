@@ -9,12 +9,10 @@ The triple **`VoiceA` / `OscillatorA` / `EnvelopeA`** constitutes the baseline m
 ### 1.1 Conceptual Overview
 
 The `VoiceDopp` type models a *field of micro sources*, that is, hundreds of discrete oscillators positioned in 3-dimensional space, each representing a small emitter of sound. The listener moves through this field, and `VoiceDopp` simulates what this listener hears. As the sounds reach the moving listener's ear, the listener perceives the cumulative Doppler shifts and intensity falloff of the sound coming from these emitters. MIDI controller knobs change the listener's direction and velocity, and MIDI controller keys trigger various emitters in the field.
-
 <figure align="center">
   <img src="../assets/VoiceDopp_concept.png" alt="VoiceDopp Concept Diagram" width="90%">
   <figcaption><b>Figure 1.</b> Concept sketch of the VoiceDopp modular voice architecture.</figcaption>
 </figure>
-
 This simulates the physics of *motion through a dynamic soundscape*: as the listener changes velocity and direction, the perceived pitch and amplitude of each emitter are continuously modulated according to classical Doppler and distance laws.
 
 ---
@@ -42,7 +40,6 @@ These computations are lightweight enough to run per block, with emitter states 
 #### 1.2.2 Parameter Mapping (MIDI / CC)
 
 Each MIDI key spawns a local field of emitters with unique base frequencies. The global listener velocity (CC6) applies across all active notes, so pitch shifts are *coherent across the soundscape*.
-
 <figure align="center">
   <img src="../assets/MPK_Mini_labelled.jpg" alt="MPK Mini" width="70%">
   <figcaption><b>Figure 2.</b> Akai MPK Mini MIDI controller with knob labels.</figcaption>
