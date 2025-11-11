@@ -65,12 +65,12 @@ graph TD
 
 ## Getting Started
 
-### 🧩 Build Requirements
+### Build Requirements
 - **JUCE** 7.x or newer  
 - **CMake** 3.25+  
 - **C++17** or newer compiler (tested with AppleClang 13+)
 
-### ⚙️ Build Instructions
+### Build Instructions
 ```bash
 git clone https://github.com/TYLERSFOSTER/MIDIControl001.git
 cd MIDIControl001
@@ -78,7 +78,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
-### ▶️ Run Standalone
+### Run Standalone
 ```bash
 ./build/MIDIControl001_artefacts/Release/Standalone/MIDIControl001.app/Contents/MacOS/MIDIControl001
 ```
