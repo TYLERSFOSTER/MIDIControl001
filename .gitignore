@@ -97,3 +97,4 @@ JuceLibraryCode/
 voice_debug.txt
 grep_hits.txt
 docs/11-10-2025/
+*.bak*
