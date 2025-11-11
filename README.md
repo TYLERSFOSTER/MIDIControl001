@@ -97,6 +97,20 @@ Or load the VST3/AU binary in your DAW.
 
 ---
 
+## Voice Types Roadmap
+
+See the full **Voice Type Roadmap** in [`docs/VOICE_TYPES_ROADMAP.md`](docs/VOICE_TYPE_ROADMAP.md).
+
+That document details the planned evolution from the baseline `VoiceA` / `OscillatorA` / `EnvelopeA` to more advanced synthesis architectures such as:
+
+- `VoiceDopp` — dual-modulator voice with cross-coupled envelopes  
+- `VoiceLET` — Lorentz-equivalent synthesis model  
+- `VoiceEns` — ensemble and frequency-band layering system  
+
+Each new type builds on the modular `VoiceX` framework described above, extending MIDIControl001 into a flexible, research-grade synthesis platform.
+
+---
+
 ## License
 
 This project is distributed under the **MIT License**.  
