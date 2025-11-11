@@ -22,7 +22,7 @@ This simulates the physics of *motion through a dynamic soundscape*: as the list
 Each emitter, indexed with subscript $i$, has position $x_{i}(t)$ and velocity $v_{i}(t)$. The listener has position $x_{L}(t)$ and velocity $v_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
 
 $$
-f'_i(t)=\frac{c + v_L \cdot \widehat{r}_i(t)}{c - v_i \cdot \widehat{r}_i(t)}f_i(t),
+f'_i(t)=f_i(t)\frac{c + v_L \cdot \widehat{r}_i(t)}{c - v_i \cdot \widehat{r}_i(t)},
 $$
 
 where $\hat{r}_i(t) = \frac{x_i(t) - x_L(t)}{\|x_i(t) - x_L(t)\|}$ and $c$ is the speed of sound (≈343 m/s).
@@ -30,7 +30,7 @@ where $\hat{r}_i(t) = \frac{x_i(t) - x_L(t)}{\|x_i(t) - x_L(t)\|}$ and $c$ is th
 Amplitude scales as inverse square of distance:
 
 $$
-A_i(t)=A_0\Big/\|x_i(t) - x_L(t)\|^2.
+A_i(t)=\frac{A_0}{\|x_i(t) - x_L(t)\|^2}.
 $$
 
 These computations are lightweight enough to run per block, with emitter states updated at audio‑rate interpolation.
@@ -93,26 +93,66 @@ void VoiceDopp::render(float* buffer, int numSamples) {
 This architecture remains fully compatible with the existing **VoiceX** model: adding new voice types involves subclassing and parameter‑group registration, with no changes to `PluginProcessor` or `VoiceManager` fundamentals.
 
 ---
+## 2. `VoiceLET`: *Relativistic* Doppler, Moving Through Fields of Emitters
 
-## 2 `VoiceLET` / `OscillatorLET` / `EnvelopeLET`
+### 2.1 Conceptual Overview
 
-[...]
+`VoiceLET` extends `VoiceDopp` into the relativistic regime.  Whereas `VoiceDopp` obeys the *classical Doppler law*, `VoiceLET` models the [*relativistic Doppler effect*](https://en.wikipedia.org/wiki/Relativistic_Doppler_effect) and [*Lorentz time dilation*](https://en.wikipedia.org/wiki/Lorentz_transformation), describing what a moving listener hears when traversing a dense field of micro-emitters at velocities approaching the speed of sound’s analog “c” (the propagation speed in the simulated medium).
 
-### 2.1 Underlying concept
-
-[...]
+This architecture explores perceptual distortions that occur when the relative velocity between listener and emitters becomes significant enough that classical assumptions break down — a *nonlinear* mapping between motion and perceived pitch.
 
 <div align="center">
   <img src="../assets/Classical_versus_relativistic.gif" alt="VoiceLET Concept Diagram" width="70%">
-  <p><b>Figure 3.</b> Concept sketch of the VoiceLET modular voice architecture.</p>
+  <p><b>Figure 3.</b> Concept GIF sketch of the VoiceLET modular voice architecture.</p>
 </div>
 
-### 1.2 Implmentation sketch
+---
+### 2.2 Implementation
+#### 2.2.1 Physical Basis
 
-[...]
+For each emitter $i$, with emitted frequency $f_i(t)$ and instantaneous radial velocity $v_{\text{rad}}$ (positive if approaching the listener), the **relativistic Doppler shift** is given by:
 
-- Finalize CC routing matrix
-- Add VoiceB module with dual-envelope mode
+$$
+f'_i(t) = f_i(t) \sqrt{\frac{1 + v_{\text{rad}}/c}{1 - v_{\text{rad}}/c}},
+$$
+
+where $c$ is the propagation speed constant of the medium (analogous to the speed of sound or light).
+
+Amplitude falloff and spatial panning follow the same inverse-square and vector-projection logic as in `VoiceDopp`, but the **time parameterization** now includes Lorentz scaling:
+
+$$
+t' = \frac{t - v_{\text{rad}} x / c^2}{\sqrt{1 - (v/c)^2}}.
+$$
+
+This produces a perceptual compression of time and frequency content as relative speed increases.
+
+---
+
+#### 2.2.2 Parameter Mapping (MIDI / CC)
+
+| CC | Control | Range / Meaning | DSP Effect |
+|----|----------|----------------|-------------|
+| CC1–CC5 | *Global volume, global mix, voice attack, voice release, & voice pitch* | Retained from baseline synth | Affects overall mixdown and dry/wet blend, as well as ADSR envelope and keyboard tuning |
+| CC6 | *Relativistic velocity ratio* | 0.0 → stationary, 1.0 → \(v = c\) | Controls Lorentz factor γ and relativistic Doppler scaling |
+| CC7 | *Emitter field density* | 0.0 → sparse, 1.0 → dense | Controls number of emitters per note (same as `VoiceDopp`) |
+
+---
+
+#### 2.2.3 Implementation Sketch
+
+- `VoiceLET` inherits from `VoiceDopp` and overrides the frequency update logic.  
+- The `OscillatorLET` computes per-emitter frequencies using the relativistic Doppler law instead of the classical one.  
+- The `EnvelopeLET` optionally scales its internal timebase by the Lorentz factor γ, creating perceptual “slowdowns” or “compressions” depending on velocity.  
+- A global parameter \( v/c \) (normalized from CC6) is stored in the `ParameterSnapshot` and applied to all active emitters.  
+- To maintain stability, the update loop clamps \( v/c < 0.99 \).
+
+```cpp
+void OscillatorLET::setRelativisticFreq(float baseFreq, float v_{\text{rad}}_over_c) {
+    const float gamma = std::sqrt((1 + v_{\text{rad}}_over_c) / (1 - v_{\text{rad}}_over_c));
+    currentFreq_ = baseFreq * gamma;
+}
+```
+---
 
 ## 3 `VoiceEns` / `FreqBandEns` / `EnvelopeEns`
 
