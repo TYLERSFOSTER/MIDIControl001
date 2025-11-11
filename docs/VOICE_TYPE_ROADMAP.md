@@ -22,12 +22,16 @@ This simulates the physics of *motion through a dynamic soundscape*: as the list
 #### 1.2.1 Physical Basis / Underlying Mathematics
 
 Each emitter, indexed with subscript $i$, has position $x_{i}(t)$ and velocity $v_{i}(t)$. The listener has position $x_{L}(t)$ and velocity $v_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
-$$f'_i(t)=\frac{c + v_L \cdot \hat{r}_i(t)}{c - v_i \cdot \hat{r}_i(t)}f_i(t),$$
+$$
+f'_i(t)=\frac{c + v_L \cdot \hat{r}_i(t)}{c - v_i \cdot \hat{r}_i(t)}f_i(t),
+$$
 where $\hat{r}_i(t) = \frac{x_i(t) - x_L(t)}{\|x_i(t) - x_L(t)\|}$
 and $c$ is the speed of sound (≈343 m/s).
 
 Amplitude scales as inverse square of distance:
-$$A_i(t)=A_0\Big/\|x_i(t) - x_L(t)\|^2.$$
+$$
+A_i(t)=A_0\Big/\|x_i(t) - x_L(t)\|^2.
+$$
 
 These computations are lightweight enough to run per block, with emitter states updated at audio‑rate interpolation.
 
