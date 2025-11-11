@@ -16,7 +16,7 @@ The `VoiceDopp` type models a *field of micro sources*, that is, hundreds of dis
 This simulates the physics of *motion through a dynamic soundscape*: as the listener changes velocity and direction, the perceived pitch and amplitude of each emitter are continuously modulated according to classical Doppler and distance laws.
 
 ---
-### 1.2 Implmentation
+### 1.2 Implementation
 #### 1.2.1 Physical Basis / Underlying Mathematics
 
 Each emitter, indexed with subscript $i$, has position $x_{i}(t)$ and velocity $v_{i}(t)$. The listener has position $x_{L}(t)$ and velocity $v_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
@@ -40,10 +40,10 @@ These computations are lightweight enough to run per block, with emitter states 
 #### 1.2.2 Parameter Mapping (MIDI / CC)
 
 Each MIDI key spawns a local field of emitters with unique base frequencies. The global listener velocity (CC6) applies across all active notes, so pitch shifts are *coherent across the soundscape*.
-<figure align="center">
+<div align="center">
   <img src="../assets/MPK_Mini_labelled.jpg" alt="MPK Mini" width="70%">
-  <figcaption><b>Figure 2.</b> Akai MPK Mini MIDI controller with knob labels.</figcaption>
-</figure>
+  <p><b>Figure 2.</b> Akai MPK Mini MIDI controller with knob labels.</p>
+</div>
 
 | CC# | Control | Range / Meaning | DSP Effect |
 |----|----------|----------------|-------------|
@@ -102,10 +102,10 @@ This architecture remains fully compatible with the existing **VoiceX** model: a
 
 [...]
 
-<figure align="center">
+<div align="center">
   <img src="../assets/Classical_versus_relativistic.gif" alt="VoiceLET Concept Diagram" width="70%">
-  <figcaption><b>Figure 3.</b> Concept sketch of the VoiceLET modular voice architecture.</figcaption>
-</figure>
+  <p><b>Figure 3.</b> Concept sketch of the VoiceLET modular voice architecture.</p>
+</div>
 
 ### 1.2 Implmentation sketch
 
