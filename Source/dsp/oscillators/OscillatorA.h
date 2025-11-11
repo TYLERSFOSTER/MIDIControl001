@@ -18,14 +18,14 @@ public:
     float nextSample()
     {
         if (freq_ <= 0.0f)
-            return 0.0f;  // ✅ silence when frequency zeroed after release
+            return 0.0f;  // silence when frequency zeroed after release
 
         const double value = std::sin(phase_);
         phase_ += twoPi * freq_ / sampleRate_;
         if (phase_ >= twoPi)
             phase_ -= twoPi; // wraparound
 
-        // ✅ safety clamp for denormals and near-zero bleed
+        // safety clamp for denormals and near-zero bleed
         return std::abs(value) < 1e-8 ? 0.0f : static_cast<float>(value);
     }
 

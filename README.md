@@ -6,7 +6,7 @@
   </picture>
 </p>
 
-# MIDIControl001
+# MIDI Control #1
 
 **A modular polyphonic MIDI synth voice plugin built with the JUCE C++ framework.**  
 Designed for rapid experimentation with per-voice DSP modules, control mapping, and automation.  
@@ -104,4 +104,4 @@ See [`LICENSE`](LICENSE) for details.
 
 ---
 
-© 2025 Tyler Foster. All rights reserved.
+Created and maintained by Tyler Foster.

@@ -110,7 +110,7 @@ void VoiceA::render(float* buffer, int numSamples)
 
 void VoiceA::updateParams(const VoiceParams& vp)
 {
-    // ⚠️ Do NOT set frequency here — avoids snapping to a global osc value.
+    // Do NOT set frequency here — avoids snapping to a global osc value.
     // Keep frequency governed by (MIDI note ⨉ detune), set at noteOn and by CC5 live updates.
 
     env_.setAttack(vp.envAttack);

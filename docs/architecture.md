@@ -1,4 +1,4 @@
-# Architecture Overview (Public Edition)
+# Architecture Overview
 
 **MIDIControl001 — Modular Voice Architecture**  
 This document describes the *VoiceX* synthesis architecture as implemented in MIDIControl001.  
@@ -247,4 +247,4 @@ Adding a new `VoiceB` only requires subclassing `BaseVoice` and plugging it into
 
 ---
 
-*(End of Public Edition)*
+*(End)*

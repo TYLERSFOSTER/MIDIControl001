@@ -1,6 +1,6 @@
 #pragma once
 #include <juce_core/juce_core.h>
-#include "dsp/BaseVoice.h"                      // ← new include
+#include "dsp/BaseVoice.h"
 #include "dsp/oscillators/OscillatorA.h"
 #include "dsp/envelopes/EnvelopeA.h"
 #include "params/ParameterSnapshot.h"

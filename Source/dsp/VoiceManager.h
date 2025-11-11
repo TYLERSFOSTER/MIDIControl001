@@ -112,7 +112,7 @@ public:
         std::cout << "[VoiceManager] dispatch cc=" << cc << " norm=" << norm << std::endl;
         DBG("dispatch cc=" << cc << " norm=" << norm);
 
-        // ✅ Cache CC values for future snapshots
+        // Cache CC values for future snapshots
         switch (cc)
         {
             case 3: // Attack: 1 ms → 2 s exponential

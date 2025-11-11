@@ -25,7 +25,7 @@ void EnvelopeA::setRelease(float seconds)
     }
 
     const double N = releaseSeconds_ * sampleRate_;
-    releaseCoef_ = std::exp(std::log(1e-5) / N); // reach -100 dB in N samples
+    releaseCoef_ = std::exp(std::log(1e-5) / N);
 }
 
 void EnvelopeA::noteOn()

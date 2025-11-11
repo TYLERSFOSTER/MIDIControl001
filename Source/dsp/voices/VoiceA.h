@@ -47,6 +47,6 @@ private:
     int   note_   = -1;
     float level_  = 0.0f;
 
-    // ✅ persistent semitone detune applied at noteOn and during live CC5 moves
+    // persistent semitone detune applied at noteOn and during live CC5 moves
     float detuneSemis_ = 0.0f;
 };
