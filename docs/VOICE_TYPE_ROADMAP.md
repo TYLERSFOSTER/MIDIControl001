@@ -33,12 +33,8 @@ The triple `VoiceA`/`OscillatorA`/`EnvelopeA` consistuting the baseline voice ty
 
 ## 3 `VoiceEns` / `FreqBandEns` / `EnvelopeEns`
 
-<figure align="center">
-  <video src="../assets/ensemble_example.mp4" width="80%" width="100%" loop controls playsinline>
-  </video>
-  <figcaption><b>Figure 3.</b> [...]</figcaption>
-</figure>
+[...]
 
-
+a
 - Introduce ModMatrix UI
 - Implement parameter morphing API
