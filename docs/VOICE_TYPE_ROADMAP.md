@@ -9,10 +9,10 @@ The triple **`VoiceA` / `OscillatorA` / `EnvelopeA`** constitutes the baseline m
 ### 1.1 Conceptual Overview
 
 The `VoiceDopp` type models a *field of micro sources*, that is, hundreds of discrete oscillators positioned in 3-dimensional space, each representing a small emitter of sound. The listener moves through this field, and `VoiceDopp` simulates what this listener hears. As the sounds reach the moving listener's ear, the listener perceives the cumulative Doppler shifts and intensity falloff of the sound coming from these emitters. MIDI controller knobs change the listener's direction and velocity, and MIDI controller keys trigger various emitters in the field.
-<figure align="center">
+<div align="center">
   <img src="../assets/VoiceDopp_concept.png" alt="VoiceDopp Concept Diagram" width="90%">
-  <figcaption><b>Figure 1.</b> Concept sketch of the VoiceDopp modular voice architecture.</figcaption>
-</figure>
+  <p><b>Figure 1.</b> Concept sketch of the VoiceDopp modular voice architecture.</p>
+</div>
 This simulates the physics of *motion through a dynamic soundscape*: as the listener changes velocity and direction, the perceived pitch and amplitude of each emitter are continuously modulated according to classical Doppler and distance laws.
 
 ---
