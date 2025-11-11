@@ -24,14 +24,14 @@ This simulates the physics of *motion through a dynamic soundscape*: as the list
 Each emitter, indexed with subscript $i$, has position $\mathbf{x}_{i}(t)$ and velocity $\mathbf{v}_{i}(t)$. The listener has position $\mathbf{x}_{L}(t)$ and velocity $\mathbf{v}_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
 
 $$
-f'_i(t)\;\;=\;\;\frac{c + \mathbf{v}_L \cdot \hat{\mathbf{r}}_i(t)}{\;\;c - \mathbf{v}_i \cdot \hat{\mathbf{r}}_i(t)\;\;}\;\;f_i(t),
+f'_i(t)=\frac{c + \mathbf{v}_L \cdot \hat{\mathbf{r}}_i(t)}{c - \mathbf{v}_i \cdot \hat{\mathbf{r}}_i(t)}f_i(t),
 $$
-where $\hat{\mathbf{r}}_i(t) = \frac{\mathbf{x}_i(t) - \mathbf{x}_L(t)}{\;\;\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|\;\;}$
+where $\hat{\mathbf{r}}_i(t) = \frac{\mathbf{x}_i(t) - \mathbf{x}_L(t)}{\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|}$
 and $c$ is the speed of sound (≈343 m/s).
 
 Amplitude scales as inverse square of distance:
 $$
-A_i(t)\;\;=\;\;A_0\;\Big/\;\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|^2.
+A_i(t)=A_0\Big/\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|^2.
 $$
 
 These computations are lightweight enough to run per block, with emitter states updated at audio‑rate interpolation.
