@@ -21,17 +21,17 @@ This simulates the physics of *motion through a dynamic soundscape*: as the list
 ### 1.2 Implmentation
 #### 1.2.1 Physical Basis / Underlying Mathematics
 
-Each emitter, indexed with subscript $i$, has position $\mathbf{x}_{i}(t)$ and velocity $\mathbf{v}_{i}(t)$. The listener has position $\mathbf{x}_{L}(t)$ and velocity $\mathbf{v}_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
+Each emitter, indexed with subscript $i$, has position ${x}_{i}(t)$ and velocity ${v}_{i}(t)$. The listener has position ${x}_{L}(t)$ and velocity ${v}_{L}(t)$. If $f_{i}(t)$ denotes the frequency produced by emitter $i$, the instantaneous perceived frequency $f'_{i}(t)$ coming from emitter $i$, as perceived by the moving listener, is given by the classical [*Doppler relation*](https://en.wikipedia.org/wiki/Doppler_effect):
 
 $$
-f'_i(t)=\frac{c + \mathbf{v}_L \cdot \hat{\mathbf{r}}_i(t)}{c - \mathbf{v}_i \cdot \hat{\mathbf{r}}_i(t)}f_i(t),
+f'_i(t)=\frac{c + {v}_L \cdot \hat{{r}}_i(t)}{c - {v}_i \cdot \hat{{r}}_i(t)}f_i(t),
 $$
-where $\hat{\mathbf{r}}_i(t) = \frac{\mathbf{x}_i(t) - \mathbf{x}_L(t)}{\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|}$
+where $\hat{{r}}_i(t) = \frac{{x}_i(t) - {x}_L(t)}{\|{x}_i(t) - {x}_L(t)\|}$
 and $c$ is the speed of sound (≈343 m/s).
 
 Amplitude scales as inverse square of distance:
 $$
-A_i(t)=A_0\Big/\|\mathbf{x}_i(t) - \mathbf{x}_L(t)\|^2.
+A_i(t)=A_0\Big/\|{x}_i(t) - {x}_L(t)\|^2.
 $$
 
 These computations are lightweight enough to run per block, with emitter states updated at audio‑rate interpolation.
@@ -50,7 +50,7 @@ Each MIDI key spawns a local field of emitters with unique base frequencies. The
 | CC# | Control | Range / Meaning | DSP Effect |
 |----|----------|----------------|-------------|
 | CC1–CC5 | *Global volume, global mix, voice attack, voice release, & voice pitch* | Retained from baseline synth | Affects overall mixdown and dry/wet blend, as well as ADSR envelope and keyboard tuning |
-| CC6 | *Signed velocity of listener* | 0.0 → $+-\mathbf{v}^{\text{max}}$ (reverse), 0.5 → 0 (stationary), 1.0 → $+\mathbf{v}^{\text{max}}$ (forward) | Determines relative Doppler shift of all emitters |
+| CC6 | *Signed velocity of listener* | 0.0 → $+-{v}^{\text{max}}$ (reverse), 0.5 → 0 (stationary), 1.0 → $+{v}^{\text{max}}$ (forward) | Determines relative Doppler shift of all emitters |
 | CC7 | *Emitter field density* | 0.0 → sparse (few emitters), 1.0 → dense (hundreds) | Controls number of emitters per note and their spatial distribution |
 
 ---
