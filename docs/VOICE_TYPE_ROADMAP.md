@@ -4,7 +4,7 @@ The triple **`VoiceA` / `OscillatorA` / `EnvelopeA`** constitutes the baseline m
 
 ---
 
-## 1. Classical Doppler, Moving Through Fields of Emitters:<br/>`VoiceDopp` / `OscillatorDopp` / `EnvelopeDopp`
+## 1. `VoiceDopp`: Classical Doppler, Moving Through Fields of Emitters
 
 ### 1.1 Conceptual Overview
 
@@ -50,7 +50,7 @@ Each MIDI key spawns a local field of emitters with unique base frequencies. The
 | CC# | Control | Range / Meaning | DSP Effect |
 |----|----------|----------------|-------------|
 | CC1–CC5 | *Global volume, global mix, voice attack, voice release, & voice pitch* | Retained from baseline synth | Affects overall mixdown and dry/wet blend, as well as ADSR envelope and keyboard tuning |
-| CC6 | *Signed velocity of listener* | 0.0 → $+-\mathbf{v}^{\operatorname{max}}$ (reverse), 0.5 → 0 (stationary), 1.0 → $+\mathbf{v}^{\operatorname{max}}$ (forward) | Determines relative Doppler shift of all emitters |
+| CC6 | *Signed velocity of listener* | 0.0 → $+-\mathbf{v}^{\text{max}}$ (reverse), 0.5 → 0 (stationary), 1.0 → $+\mathbf{v}^{\text{max}}$ (forward) | Determines relative Doppler shift of all emitters |
 | CC7 | *Emitter field density* | 0.0 → sparse (few emitters), 1.0 → dense (hundreds) | Controls number of emitters per note and their spatial distribution |
 
 ---
