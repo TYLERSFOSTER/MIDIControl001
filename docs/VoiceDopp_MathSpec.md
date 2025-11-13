@@ -59,19 +59,19 @@ $$
 
 For MIDI controller knob index $k$, we interpet the running value, describing the position of the knob, the *(normalized) value stream* assocaited to that knob, as a continuous function
 $$
-\textsf{CC}_{k}:\mathbb{R}_{\ge0}\longrightarrow [0,1]
+ \text{CC}_{k}:\mathbb{R}_{\ge0}\longrightarrow [0,1]
 $$
-So for instance, $\textsf{CC}_{5}(t)$ dentoes the value stream coming from MIDI controller knob `CC5`.
+So for instance, $ \text{CC}_{5}(t)$ dentoes the value stream coming from MIDI controller knob `CC5`.
 
 ### 1.1 Global, time‑varying controls (sampled every audio block)
 
 **Travelling listener knobs:**
-- *Listener speed control* (`CC5`): $s(t):=\textsf{CC}_{5}(t)\in[0,1]$.
+- *Listener speed control* (`CC5`): $s(t):= \text{CC}_{5}(t)\in[0,1]$.
 - *Maximum listener speed*: $v_{\max}\,\in\,\mathbb{R}_{>0}$.
 - *Scalar listener speed*: $v(t):=v_{\max}\cdot s(t)$.
 - *Heading control* (`CC6`):
   $$
-  \theta(t) := 2\pi\cdot\textsf{CC}_{6}(t)-\pi,
+  \theta(t) := 2\pi\cdot \text{CC}_{6}(t)-\pi,
   $$
   which takes values in $[-\pi,\pi)$.
 - *Unit heading vector*: $u(\theta):=(\,\cos\theta, \sin\theta\,)$.
@@ -92,19 +92,19 @@ $$
   <p><b>Figure 2.</b> Concept sketch of the VoiceDopp modular voice architecture.</p>
 </div>
 
-- *MIDI kniob value at note-on*: $\textsf{CC}_{k}^{(\text{on})}:=\textsf{CC}_{k}(t_{\text{on}})$.
+- *MIDI kniob value at note-on*: $ \text{CC}_{k}^{(\text{on})}:= \text{CC}_{k}(t_{\text{on}})$.
 - *Emitter lattice orientation* (`CC7`):
 $$
 \begin{array}{rl}
 \textit{orientation angle}: &
-\varphi := 2\pi\cdot\textsf{CC}_{7}^{(\text{on})}-\pi \\
+\varphi := 2\pi\cdot \text{CC}_{7}^{(\text{on})}-\pi \\
 \textit{associated normal}: &
 n(\varphi):=\left(\!\!\begin{array}{c}\cos\varphi\\ \sin\varphi\end{array}\!\!\right) \\
 \textit{associated tangent}: &
 b(\varphi):=\left(\!\!\begin{array}{c}-\sin\varphi\\ \cos\varphi\end{array}\!\!\right)
 \end{array}
 $$
-- *Emitter line density* (`CC8`): $\rho:=\textsf{CC}_{8}^{(\text{on})}\in[0,1]$
+- *Emitter line density* (`CC8`): $\rho:= \text{CC}_{8}^{(\text{on})}\in[0,1]$
 - *Emitter line spacing*:
   $$
   \Delta^\perp
@@ -117,7 +117,7 @@ $$
 - *Along‑line emitter spacing*: fixed $\Delta^\parallel=1$ (unit lattice) unless otherwise stated.
 - *Field pulse frequency* (`CC4`): with bounds $0<\mu_{\min}<\mu_{\max}$, let
   $$
-  \mu_{\text{pulse}} := \mu_{\min} + \big(\,\mu_{\max}-\mu_{\min}\,\big)\cdot\textsf{CC}_{4}^{(\text{on})}
+  \mu_{\text{pulse}} := \mu_{\min} + \big(\,\mu_{\max}-\mu_{\min}\,\big)\cdot \text{CC}_{4}^{(\text{on})}
   $$
   Typical: $\mu_{\min}=0.1\,\text{Hz}$, $\mu_{\max}=8\,\text{Hz}$.
 - *Baseline synthesis params* (`CC1`-`CC3`): retain volume/mix/ADSR parameters as in `VoiceA` (omitted here).
