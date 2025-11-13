@@ -6,6 +6,8 @@ The triple **`VoiceA` / `OscillatorA` / `EnvelopeA`** constitutes the baseline m
 
 ## 1. `VoiceDopp`: Classical Doppler, Moving Through Fields of Emitters
 
+*For further development and more extensive details of the `VoiceDopp`, please see [`docs/VoiceDopp_MathSpec.md`](../docs/VoiceDopp_MathSpec.md) 
+
 ### 1.1 Conceptual Overview
 
 The `VoiceDopp` type models a *field of micro sources*, that is, hundreds of discrete oscillators positioned in 3-dimensional space, each representing a small emitter of sound. The listener moves through this field, and `VoiceDopp` simulates what this listener hears. As the sounds reach the moving listener's ear, the listener perceives the cumulative Doppler shifts and intensity falloff of the sound coming from these emitters. MIDI controller knobs change the listener's direction and velocity, and MIDI controller keys trigger various emitters in the field.
@@ -80,7 +82,7 @@ void VoiceDopp::render(float* buffer, int numSamples) {
 
 ---
 
-### 1.5 Integration with Modular Architecture
+#### 1.2.4 Integration with Modular Architecture
 
 | Component | Role | Connection |
 |------------|------|------------|
@@ -91,6 +93,114 @@ void VoiceDopp::render(float* buffer, int numSamples) {
 | `EnvelopeDopp` | per‑voice amplitude shaping | matches perceptual dynamics |
 
 This architecture remains fully compatible with the existing **VoiceX** model: adding new voice types involves subclassing and parameter‑group registration, with no changes to `PluginProcessor` or `VoiceManager` fundamentals.
+
+### 1.3 Knob (`CC#`) Behavior Amendment — Extended `VoiceDopp` Control Specification
+
+This amendment supersedes the original section **1.2.2 (Parameter Mapping)** in the *Voice Types Roadmap*.  
+It defines the **finalized control semantics** for `VoiceDopp` after November 2025 design revisions, integrating all current physical, temporal, and architectural constraints.
+
+---
+
+#### 1.3.1 Updated CC Mapping Overview
+
+| CC | Control | Range / Mapping | Sampling Behavior | Scope | Description |
+|----|----------|----------------|------------------|--------|--------------|
+| `CC1` | Global volume | [0–1] | per block | global | Controls overall gain applied at mixdown. |
+| `CC2` | Global mix (wet/dry) | [0–1] | per block | global | Crossfades between dry signal and synthesized output. |
+| `CC3` | Envelope attack | [0–1] | per block | per-voice continuous | Retains baseline ADSR behavior. |
+| `CC4` | **Emitter-field pulse rate (Hz)** | [0–1] → 0.1–8 Hz (log map) | **sampled at Note On** | per-voice fixed | Defines rhythmic modulation speed for emitter amplitude. |
+| `CC5` | **Listener speed magnitude** | [0–1] → 0–vₘₐₓ | per block | global continuous | Sets Euclidean magnitude of listener velocity. |
+| `CC6` | **Listener direction (heading angle)** | [0–1] → 0–2π radians | per block | global continuous | Determines direction of motion vector. |
+| `CC7` | **Emitter-line normal angle** | [0–1] → 0–2π radians | **sampled at Note On** | per-voice fixed | Rotates emitter lattice orientation. |
+| `CC8` | **Emitter-line density** | [0–1] → spacing = 1 / (ρₘₐₓ·CC8 + ε) | **sampled at Note On** | per-voice fixed | Controls distance between parallel emitter lines (0 → single line, 1 → dense 2D lattice). |
+
+---
+
+#### 1.3.2 Temporal Semantics
+
+1. **Per-Block Continuous Controls (CC1–CC3, CC5–CC6):**  
+   - Updated once per audio block through the standard `APVTS → ParameterSnapshot → VoiceManager` chain.  
+   - Affect all active voices coherently.  
+   - Provide global motion and global tone behavior.  
+
+2. **Per-Note Sample-and-Hold Controls (CC4, CC7, CC8):**  
+   - Values captured once at `noteOn()` and stored immutably in that voice instance.  
+   - Mid-note changes do **not** affect existing emitters.  
+   - New notes adopt the current CC4/7/8 state, allowing overlapping voices with distinct pulse rates and lattice geometries.  
+
+This guarantees deterministic behavior, prevents per-block geometry churn, and enables polyphonic spatial independence.
+
+---
+
+#### 1.3.3 Mathematical Model Summary
+
+##### 
+***Listener Motion.***
+Listener velocity vector defined each block by:
+$$
+v_L = v_{\text{max}} 
+\begin{bmatrix}
+\cos(2π·\textsf{CC6}) \\
+\sin(2π·\textsf{CC6})
+\end{bmatrix}
+·\textsf{CC5}.
+$$
+This vector drives Doppler frequency modulation for all emitters in all active voices.
+
+#####
+***Emitter Geometry.***
+Define $θ_N := 2π·\textsf{CC7}$.
+At note-on, each voice instantiates its emitter lattice according to:
+$$
+x_i = m·n + k·t,
+$$
+where
+$$
+n = (\cos θ_N, \sin θ_N)\quad\text{and}\quad
+t = (−\sin θ_N, \cos θ_N).
+$$
+Here
+- `CC8` controls line spacing as $d = 1 / (ρ_{max} · \textsf{CC8} + ε)$.  
+- `CC8` → 0 produces one emitter line; `CC8` → 1 yields a dense quasi-2D field.  
+- Geometry is frozen until `noteOff()`.
+
+##### 
+***Field Pulse Modulation.***
+Each note has a field-wide amplitude LFO driven by CC4:
+$$
+A_{\text{field}}(t) = \tfrac{1}{2}\Big(1 + \sin\big(2π\;f_{\text{pulse}}(t)\big)\Big)
+$$
+where $f_{\text{pulse}}$ is the linear map between real intervals
+$$
+f_{\mathrm{pulse}} : \underset{\text{knob value}}{\underbrace{[0\,,\;1\,]}} \longrightarrow\!\!\!\! \underset{\text{pulse frequency (Hz)}}{\underbrace{[\,0.1,\;8.0\,]}}
+$$
+given by the formula
+$$
+f_{\mathrm{pulse}}(\textsf{CC4}) = 0.1 + 7.9\cdot\textsf{CC4}
+$$
+This amplitude multiplier modulates all emitters in that note simultaneously, creating rhythmic “breathing” of the sound field. Different notes may pulse asynchronously, forming complex polyrhythms.
+
+---
+
+#### 1.3.4 Implementation Guidance for Future Consultants
+
+1. **Snapshot Capture:** `ParameterSnapshot` retains all eight CCs per block.  
+2. **Voice Spawning:** `VoiceManager::noteOn()` forwards the snapshot; `VoiceDopp::noteOn()` extracts CC4, CC7, CC8 → immutable fields.  
+3. **Real-Time Safety:** `VoiceDopp::updateParams()` must skip geometry and pulse updates while active (`active_ == true`).  
+4. **Render Loop:** Continually applies updated motion vector (`CC5–CC6`) while preserving frozen geometry and pulse rate.  
+5. **Pulse Implementation:** Use either a small internal oscillator or `EnvelopeDopp` subcomponent; maintain phase continuity using block-based increment Δφ = 2π fₚₗₛ Δt.  
+6. **Test Recommendations:**  
+   - Add regression test verifying per-voice immutability of CC4–CC8 post–noteOn.  
+   - Verify Doppler shift consistency under varying CC5/6 motion updates.  
+
+All modifications remain compliant with the **Prime Directive Enforcement Charter**, maintaining file jurisdiction boundaries and deterministic runtime behavior.
+
+---
+
+#### 1.3.5 Behavioral Synopsis
+
+> *`VoiceDopp` now supports independent per-note emitter geometry and pulse rhythm (CC4/7/8, sampled at note-on) combined with globally coherent motion control (CC5/6, continuous), achieving multi‑layer Doppler lattices that remain fully real‑time safe, polyphonic, and architecturally compliant.*
+
 
 ---
 ## 2. `VoiceLET`: *Relativistic* Doppler, Moving Through Fields of Emitters
