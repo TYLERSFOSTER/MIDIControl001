@@ -171,14 +171,16 @@ A^{\text{env}}_{i}(t) =
 \text{release at }(t-t_{\text{off}}), & t\ge t_{\text{off}}.
 \end{cases}
 $$
-For each emitter, the *ADSR envelope factor at listener time* $t$ is $A^{\text{env}}_{i}(t^{\text{ret}}_i)$. The *field pulse envelope at listener time* is $A^{\text{field}}(t^{\text{ret}}_{i})$. The *carrier signal at listener time* is $s_i(t^{\text{ret}}_{i})$. 
+All emitter-side functions — $A^{\text{env}}_i$, $A^{\text{field}}$, and $s_i$ — are **evaluated at their retarded argument** $t_i^{\text{ret}}$, not “at emission time” in a literal code sense. This means that what the listener hears at time $t$ is precisely the signal that left emitter $i$ at the earlier physical time $t_i^{\text{ret}} = t - r_i(t)/c$. These quantities are therefore functions of *past physical time*, producing correct propagation delay and Doppler warping without requiring explicit time-domain delay buffers.
 
-*All of these, ADSR envelope factor at listener time, field pulse envelope at listener time, and carrier signal at listener time, are evaluated **at emission time**.* [THIS CAN'T BE CORRECT]
-
-Thus the *er‑emitter received signal* is
+Formally, the received signal from emitter $i$ is
 $$
 p_i(t) \;=\; w\big(r_i(t)\big)\;\cdot\;A^{\text{env}}_{i}(t^{\text{ret}}_{i})\;\cdot\;A^{\text{field}}_{i}(t^{\text{ret}}_{i})\;\cdot\; s_{i}(t^{\text{ret}}_{i}).
 $$
+
+---
+
+This clarification ensures that the retarded-time formalism is physically faithful, while remaining implementable in a blockwise evaluation model (no explicit delay lines needed).
 
 **Remark (Doppler correctness).** Differentiation yields
 $$
