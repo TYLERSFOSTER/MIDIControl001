@@ -15,33 +15,33 @@
 </div>
 
 **Ambient space:**
-- *Ambient space*: $\mathbb{R}^2$ (planar model; can be extended to $\mathbb{R}^3$).  
+- *Ambient space*: $\bold{R}^2$ (planar model; can be extended to $\bold{R}^3$).  
 - *Speed of sound in atmosphere*: $c>0$ (m/s).  
 - *Absorption coefficient in atmosphere*: $\alpha \ge 0$ (1/m).
 
 **Travelling listener:**
 - *Listener trajectory*: continuously differentiable function
 $$
-x_L : \mathbb{R}_{\ge 0} \longrightarrow \mathbb{R}^2
+x_L : \bold{R}_{\ge 0} \longrightarrow \bold{R}^2
 $$
 - Listener velocity: $v_L(t):=\frac{d}{dt}x_L(t)$.
 
 **Emitter field:**
 - *Note-on/off times for a given voice*:
 $$
-t_{\mathrm{on}}\;<\;t_{\mathrm{off}}\;\;\in\;\mathbb{R}_{\ge 0}\quad\text{( with $t_{\mathrm{off}}=\infty$ if key held )}
+t_{\text{on}}\;<\;t_{\text{off}}\;\;\in\;\bold{R}_{\ge 0}\quad\text{( with $t_{\text{off}}=\infty$ if key held )}
 $$
 - *Base frequency for* $i^{\textit{th}}$ *emitter*: $\lambda_{i}>0$ (Hz)
-- *Base phase for* $i^{\textit{th}}$ *emitter*: $\phi_i\in\mathbb{R}$.
+- *Base phase for* $i^{\textit{th}}$ *emitter*: $\phi_i\in\bold{R}$.
 - *Carrier signal for $i^{\text{th}}$ emiiter*: $s_i(t) := \sin\!\big(2\pi \lambda_{i}\, t + \phi_i\big)$  
 - *ADSR envelope function*:
 $$
-A^{\mathrm{env}} : \mathbb{R}^2 \longrightarrow [0,1]\quad\text{( defined in §2.2 )}
+A^{\text{env}} : \bold{R}^2 \longrightarrow [0,1]\quad\text{( defined in §2.2 )}
 $$
-- *Emitter field pulse rate*: $\mu_{\mathrm{pulse}}>0$ (Hz) (defined in §1.3), 
+- *Emitter field pulse rate*: $\mu_{\text{pulse}}>0$ (Hz) (defined in §1.3), 
 - *Emitter field pulsating amplitude*:
 $$
-A^{\mathrm{field}}(t)\;=\;\frac{1}{2}\big(\,1+\sin(\,2\pi\cdot\mu_{\mathrm{pulse}}\cdot t)\,\big)
+A^{\text{field}}(t)\;=\;\frac{1}{2}\big(\,1+\sin(\,2\pi\cdot\mu_{\text{pulse}}\cdot t)\,\big)
 $$  
 - *Emitter sound attenuation kernel*: choosing a small *regularizer* $r_{\min}>0$ (e.g. $10^{-3}$), we get an *attentuation kernel*
 $$
@@ -59,7 +59,7 @@ $$
 
 For MIDI controller knob index $k$, we interpet the running value, describing the position of the knob, the *(normalized) value stream* assocaited to that knob, as a continuous function
 $$
-\textsf{CC}_{k}:\mathbb{R}_{\ge0}\longrightarrow [0,1]
+\textsf{CC}_{k}:\bold{R}_{\ge0}\longrightarrow [0,1]
 $$
 So for instance, $\textsf{CC}_{5}(t)$ dentoes the value stream coming from MIDI controller knob `CC5`.
 
@@ -67,7 +67,7 @@ So for instance, $\textsf{CC}_{5}(t)$ dentoes the value stream coming from MIDI 
 
 **Travelling listener knobs:**
 - *Listener speed control* (`CC5`): $s(t):=\textsf{CC}_{5}(t)\in[0,1]$.
-- *Maximum listener speed*: $v_{\max}\,\in\,\mathbb{R}_{>0}$.
+- *Maximum listener speed*: $v_{\max}\,\in\,\bold{R}_{>0}$.
 - *Scalar listener speed*: $v(t):=v_{\max}\cdot s(t)$.
 - *Heading control* (`CC6`):
   $$
@@ -82,7 +82,7 @@ x_0\;:=\;x(t_0)
 $$
 Then we can recover listener position from the scalar listener speed $v(t)$ and the unit heading vector $u(\theta)$ via the integral
 $$
-x_L(t)\;=\;x_0+\int_{t_0}^t v(\tau)\cdot u\big(\theta(\tau)\big)\;\mathrm{d}\tau
+x_L(t)\;=\;x_0+\int_{t_0}^t v(\tau)\cdot u\big(\theta(\tau)\big)\;\text{d}\tau
 $$
 *(Piecewise‑constant blockwise integration is permitted in implementation.)*
 
@@ -92,19 +92,19 @@ $$
   <p><b>Figure 2.</b> Concept sketch of the VoiceDopp modular voice architecture.</p>
 </div>
 
-- *MIDI kniob value at note-on*: $\textsf{CC}_{k}^{(\mathrm{on})}:=\textsf{CC}_{k}(t_{\mathrm{on}})$.
+- *MIDI kniob value at note-on*: $\textsf{CC}_{k}^{(\text{on})}:=\textsf{CC}_{k}(t_{\text{on}})$.
 - *Emitter lattice orientation* (`CC7`):
 $$
 \begin{array}{rl}
 \textit{orientation angle}: &
-\varphi\;:=\;2\pi\cdot\textsf{CC}_{7}^{(\mathrm{on})}-\pi \\
+\varphi\;:=\;2\pi\cdot\textsf{CC}_{7}^{(\text{on})}-\pi \\
 \textit{associated normal}: &
 n(\varphi):=\left(\!\!\begin{array}{c}\cos\varphi\\ \sin\varphi\end{array}\!\!\right) \\
 \textit{associated tangent}: &
 b(\varphi):=\left(\!\!\begin{array}{c}-\sin\varphi\\ \cos\varphi\end{array}\!\!\right)
 \end{array}
 $$
-- *Emitter line density* (`CC8`): $\rho:=\textsf{CC}_{8}^{(\mathrm{on})}\in[0,1]$
+- *Emitter line density* (`CC8`): $\rho:=\textsf{CC}_{8}^{(\text{on})}\in[0,1]$
 - *Emitter line spacing*:
   $$
   \Delta^\perp
@@ -117,25 +117,25 @@ $$
 - *Along‑line emitter spacing*: fixed $\Delta^\parallel=1$ (unit lattice) unless otherwise stated.
 - *Field pulse frequency* (`CC4`): with bounds $0<\mu_{\min}<\mu_{\max}$, let
   $$
-  \mu_{\mathrm{pulse}}\;:=\;\mu_{\min} + \big(\,\mu_{\max}-\mu_{\min}\,\big)\cdot\textsf{CC}_{4}^{(\mathrm{on})}
+  \mu_{\text{pulse}}\;:=\;\mu_{\min} + \big(\,\mu_{\max}-\mu_{\min}\,\big)\cdot\textsf{CC}_{4}^{(\text{on})}
   $$
-  Typical: $\mu_{\min}=0.1\,\mathrm{Hz}$, $\mu_{\max}=8\,\mathrm{Hz}$.
+  Typical: $\mu_{\min}=0.1\,\text{Hz}$, $\mu_{\max}=8\,\text{Hz}$.
 - *Baseline synthesis params* (`CC1`-`CC3`): retain volume/mix/ADSR parameters as in `VoiceA` (omitted here).
 
 ---
 
 ## 1.3 Emitter Set (Lattice of Lines)
 
-For a given note, the emitter set $\mathcal{E}\subset\mathbb{R}^2$ is the union of parallel lines with normal $n(\varphi)$ spaced by $\Delta^\perp$, each line populated by points at spacing $\Delta^\parallel$ along tangent $b(\varphi)$.
+For a given note, the emitter set $\mathcal{E}\subset\bold{R}^2$ is the union of parallel lines with normal $n(\varphi)$ spaced by $\Delta^\perp$, each line populated by points at spacing $\Delta^\parallel$ along tangent $b(\varphi)$.
 
-Formally, index lines by $k\in\mathbb{Z}$ and along‑line positions by $m\in\mathbb{Z}$. The emitter coordinates are
+Formally, index lines by $k\in\bold{Z}$ and along‑line positions by $m\in\bold{Z}$. The emitter coordinates are
 $$
 x_{k,m}(\rho,\,\varphi)\;\;:=\;\;k\cdot\Delta^\perp\cdot n(\varphi)\;\;+\;\; m\cdot\Delta^\parallel\cdot b(\varphi)
 $$
 - If $\rho=0$, the set reduces to the single line $k=0$.  
 - Otherwise it is an infinite 2‑D lattice embedded as a union of lines.
 
-Because the position of each emitter is uniquely determined by the pair of integers $(k,m)\in\mathbb{Z}\times\mathbb{Z}$, we can reinterpret that emitter's index $i$ as being this pair $(k,m)$, so that
+Because the position of each emitter is uniquely determined by the pair of integers $(k,m)\in\bold{Z}\times\bold{Z}$, we can reinterpret that emitter's index $i$ as being this pair $(k,m)$, so that
 $$
 x_i\;=\;x_{k,m}(\varrho,\,\varphi).
 $$
@@ -160,34 +160,34 @@ $$
 ### 2.2 ADSR envelope (source‑side, evaluated at emission)
 An *attack/decay/sustain/release curve* (*ADSR curve*) is a notnecessarily continuous function 
 $$
-A^{\mathrm{env}}_{i}:\mathbb{R}\longrightarrow[0,1],
+A^{\text{env}}_{i}:\bold{R}\longrightarrow[0,1],
 $$
 supported a time interval $[t_{\text{on}},\,t_{\text{off}}]$, that describes the amplitude envelope of the signal produced by a single emitter. The specific shape of the ADSR curve is determined by auxiliary parameters, and has piecewise form
 $$
-A^{\mathrm{env}}_{i}(t) =
+A^{\text{env}}_{i}(t) =
 \begin{cases}
-0, & t<t_{\mathrm{on}},\\[3pt]
-\text{attack/decay/sustain at }(t-t_{\mathrm{on}}), & t_{\mathrm{on}}\le t<t_{\mathrm{off}},\\[3pt]
-\text{release at }(t-t_{\mathrm{off}}), & t\ge t_{\mathrm{off}}.
+0, & t<t_{\text{on}},\\[3pt]
+\text{attack/decay/sustain at }(t-t_{\text{on}}), & t_{\text{on}}\le t<t_{\text{off}},\\[3pt]
+\text{release at }(t-t_{\text{off}}), & t\ge t_{\text{off}}.
 \end{cases}
 $$
-For each emitter, the *ADSR envelope factor at listener time* $t$ is $A^{\mathrm{env}}_{i}(t^{\text{ret}}_i)$. The *field pulse envelope at listener time* is $A^{\mathrm{field}}(t^{\text{ret}}_{i})$. The *carrier signal at listener time* is $s_i(t^{\text{ret}}_{i})$. 
+For each emitter, the *ADSR envelope factor at listener time* $t$ is $A^{\text{env}}_{i}(t^{\text{ret}}_i)$. The *field pulse envelope at listener time* is $A^{\text{field}}(t^{\text{ret}}_{i})$. The *carrier signal at listener time* is $s_i(t^{\text{ret}}_{i})$. 
 
 *All of these, ADSR envelope factor at listener time, field pulse envelope at listener time, and carrier signal at listener time, are evaluated **at emission time**.* [THIS CAN'T BE CORRECT]
 
 Thus the *er‑emitter received signal* is
 $$
-p_i(t) \;=\; w\big(r_i(t)\big)\;\cdot\;A^{\mathrm{env}}_{i}(t^{\text{ret}}_{i})\;\cdot\;A^{\mathrm{field}}_{i}(t^{\text{ret}}_{i})\;\cdot\; s_{i}(t^{\text{ret}}_{i}).
+p_i(t) \;=\; w\big(r_i(t)\big)\;\cdot\;A^{\text{env}}_{i}(t^{\text{ret}}_{i})\;\cdot\;A^{\text{field}}_{i}(t^{\text{ret}}_{i})\;\cdot\; s_{i}(t^{\text{ret}}_{i}).
 $$
 
 **Remark (Doppler correctness).** Differentiation yields
 $$
-\frac{\mathrm{d}t^{\text{ret}}_{i}}{\mathrm{d}t} = 1 - \frac{\dot r_i(t)}{c}
+\frac{\text{d}t^{\text{ret}}_{i}}{\text{d}t} = 1 - \frac{\dot r_i(t)}{c}
 = 1 - \frac{v_L(t)\cdot \hat r_i(t)}{c},\quad \hat r_i(t)=\frac{x_i-x_L(t)}{r_i(t)},
 $$
 so the instantaneous heard frequency equals
 $$
-\lambda_{i}^{\mathrm{heard}}(t) = \frac{\mathrm{d}}{\mathrm{d}t}\Big(\frac{1}{2\pi}\arg s_i^{\star}(t)\Big)
+\lambda_{i}^{\text{heard}}(t) = \frac{\text{d}}{\text{d}t}\Big(\frac{1}{2\pi}\arg s_i^{\star}(t)\Big)
 = \frac{\lambda_{i}}{1 - \tfrac{v_L(t)\cdot \hat r_i(t)}{c}},
 $$
 i.e. classical Doppler for moving receiver / stationary source.
@@ -200,11 +200,11 @@ The emitter set $\mathcal{E}$ is infinite (except when $\rho=0$). At any listene
 
 ### 3.1 Eligibility region with hysteresis
 
-Choose radii $0<R_{\mathrm{in}}<R_{\mathrm{out}}$ and define eligibility
+Choose radii $0<R_{\text{in}}<R_{\text{out}}$ and define eligibility
 $$
-\mathcal{E}_{\mathrm{elig}}(t)=\{\,i\in\mathcal{E}\,:\, r_i(t)\le R_{\mathrm{out}}\,\}.
+\mathcal{E}_{\text{elig}}(t)=\{\,i\in\mathcal{E}\,:\, r_i(t)\le R_{\text{out}}\,\}.
 $$
-Members of $\mathcal{E}_{\text{act}}(t)$ are retained while $r_i(t)\le R_{\mathrm{out}}$ and become re‑eligible only when $r_i(t)\le R_{\mathrm{in}}$.
+Members of $\mathcal{E}_{\text{act}}(t)$ are retained while $r_i(t)\le R_{\text{out}}$ and become re‑eligible only when $r_i(t)\le R_{\text{in}}$.
 
 ### 3.2 Predictive score
 
@@ -215,7 +215,7 @@ $$
 $$
 The associated score is then
 $$
-\text{score}_{i,\tau}= w(\tilde r_{i,\tau})\cdot A^{\mathrm{env}}_{i}(\tilde t^{\text{ret}}_{i,\tau})\cdot A^{\mathrm{field}}(\tilde t^{\text{ret}}_{i,\tau})
+\text{score}_{i,\tau}= w(\tilde r_{i,\tau})\cdot A^{\text{env}}_{i}(\tilde t^{\text{ret}}_{i,\tau})\cdot A^{\text{field}}(\tilde t^{\text{ret}}_{i,\tau})
 $$
 The **predictive score** is
 $$
@@ -224,12 +224,12 @@ $$
 
 ### 3.3 Top‑$K$ with soft margin and crossfades
 
-Let $K\in\mathbb{N}$ and *margin* $\delta\ge 0$. At time $t$, among $\mathcal{E}_{\mathrm{elig}}(t)$, choose $\mathcal{E}_{\text{act}}(t)$ as the size‑$K$ set with largest $\text{score}_{i}(t)$, preferring incumbents unless a challenger exceeds the $K$-th score by $\delta$. When membership changes, each emitter $i$ carries a *mix gain* $g_i(t)\in[0,1]$ satisfying
+Let $K\in\bold{N}$ and *margin* $\delta\ge 0$. At time $t$, among $\mathcal{E}_{\text{elig}}(t)$, choose $\mathcal{E}_{\text{act}}(t)$ as the size‑$K$ set with largest $\text{score}_{i}(t)$, preferring incumbents unless a challenger exceeds the $K$-th score by $\delta$. When membership changes, each emitter $i$ carries a *mix gain* $g_i(t)\in[0,1]$ satisfying
 $$
 \dot g_i(t)=
 \begin{cases}
-+1/T_{\mathrm{xfade}}, & i \text{ enters (ramp up)},\\
--1/T_{\mathrm{xfade}}, & i \text{ exits (ramp down)},\\
++1/T_{\text{xfade}}, & i \text{ enters (ramp up)},\\
+-1/T_{\text{xfade}}, & i \text{ exits (ramp down)},\\
 0, & \text{otherwise},
 \end{cases}
 \qquad g_i \text{ clamped to }[0,1].
