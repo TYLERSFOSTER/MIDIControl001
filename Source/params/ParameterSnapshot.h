@@ -20,6 +20,7 @@ struct VoiceParams
 struct ParameterSnapshot {
     float masterVolumeDb = -6.0f;
     float masterMix      = 1.0f;
+    int   voiceMode      = 0;      // 0 == "voiceA"
     float oscFreq        = 440.0f;
     float envAttack      = 0.01f;
     float envRelease     = 0.2f;

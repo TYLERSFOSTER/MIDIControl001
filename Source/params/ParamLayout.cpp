@@ -21,6 +21,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         NormalisableRange<float>(0.0f, 1.0f),
         1.0f));
 
+    layout.add(std::make_unique<AudioParameterChoice>(
+        ParameterIDs::voiceMode,
+        "Voice Mode",
+        StringArray{ "voiceA" }, // Phase II Step A: only VoiceA exists
+        0 // default index: "voiceA"
+    ));
+
     layout.add(std::make_unique<AudioParameterFloat>(
         ParameterIDs::oscFreq,
         "Osc Frequency",
