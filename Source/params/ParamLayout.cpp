@@ -5,10 +5,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 {
     using namespace juce;
 
-    DBG("=== Building ParameterLayout (diagnostic single-voice) ===");
+    DBG("=== Building ParameterLayout (diagnostic multi-voice) ===");
 
     AudioProcessorValueTreeState::ParameterLayout layout;
 
+    // ============================================================
+    // Master-level parameters
+    // ============================================================
     layout.add(std::make_unique<AudioParameterFloat>(
         ParameterIDs::masterVolume,
         "Master Volume",
@@ -21,13 +24,38 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         NormalisableRange<float>(0.0f, 1.0f),
         1.0f));
 
-    layout.add(std::make_unique<AudioParameterChoice>(
-        ParameterIDs::voiceMode,
-        "Voice Mode",
-        StringArray{ "voiceA" }, // Phase II Step A: only VoiceA exists
-        0 // default index: "voiceA"
-    ));
+    // ============================================================
+    // Global voice-mode selector (Phase III B3)
+    // ------------------------------------------------------------
+    // IMPORTANT: The order here must match the VoiceMode enum
+    // (typically defined in ParameterSnapshot.h):
+    //
+    //   0 -> VoiceA
+    //   1 -> VoiceDopp
+    //   2 -> VoiceLET
+    //   3 -> VoiceFM
+    //
+    // For now, the engine still instantiates only VoiceA, so
+    // changing this in the UI has *no* effect on DSP output yet.
+    // ============================================================
+    {
+        StringArray modeNames;
+        modeNames.add("VoiceA");    // index 0 -> VoiceMode::VoiceA
+        modeNames.add("VoiceDopp"); // index 1 -> VoiceMode::VoiceDopp
+        modeNames.add("VoiceLET");  // index 2 -> VoiceMode::VoiceLET
+        modeNames.add("VoiceFM");   // index 3 -> VoiceMode::VoiceFM
 
+        layout.add(std::make_unique<AudioParameterChoice>(
+            ParameterIDs::voiceMode,
+            "Voice Mode",
+            modeNames,
+            0 // default index: VoiceA
+        ));
+    }
+
+    // ============================================================
+    // Global (non-per-voice) DSP parameters
+    // ============================================================
     layout.add(std::make_unique<AudioParameterFloat>(
         ParameterIDs::oscFreq,
         "Osc Frequency",

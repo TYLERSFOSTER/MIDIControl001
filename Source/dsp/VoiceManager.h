@@ -4,7 +4,10 @@
 #include <memory>
 #include <algorithm>
 #include <fstream>
-#include <numeric> // for inner_product
+#include <numeric>   // for inner_product
+#include <cmath>     // for std::exp, std::log
+#include <functional>
+
 #include "params/ParameterSnapshot.h"
 #include "dsp/voices/VoiceA.h"
 #include "dsp/BaseVoice.h"
@@ -18,39 +21,60 @@ class VoiceManager {
 public:
     using SnapshotMaker = std::function<ParameterSnapshot(void)>; // callback type
 
-    explicit VoiceManager(SnapshotMaker makeSnapshot)
-        : makeSnapshot_(std::move(makeSnapshot)) {}
+    // Optional injection point for mode-aware voice construction.
+    // If empty, we fall back to makeVoiceForMode(mode_).
+    using VoiceFactory  = std::function<std::unique_ptr<BaseVoice>(VoiceMode)>;
+
+    explicit VoiceManager(SnapshotMaker makeSnapshot,
+                          VoiceFactory voiceFactory = {})
+        : makeSnapshot_(std::move(makeSnapshot)),
+          voiceFactory_(std::move(voiceFactory))
+    {}
 
     static constexpr int maxVoices = 32;
 
     // ============================================================
-    // Phase II — Global voice-mode state (A→D)
+    // Phase III — Mode-aware voice factory (currently inert)
     // ============================================================
-    void setMode(int m)
+    std::unique_ptr<BaseVoice> makeVoiceForMode(VoiceMode mode) const
     {
-        mode_ = m;   // 0 == "voiceA" (current-only)
+        // For now, ALL modes return VoiceA. 100% behaviorally inert.
+        juce::ignoreUnused(mode);
+        return std::make_unique<VoiceA>();
     }
 
-    // >>> ADDED FOR A6 <<<
-    int getMode() const noexcept
+    // Central hook for future mode-specific per-block behavior.
+    void applyModeConfiguration()
+    {
+        switch (mode_)
+        {
+            case VoiceMode::VoiceA:
+            default:
+                // Current plugin: only VoiceA exists, nothing to do.
+                break;
+        }
+    }
+
+    // ============================================================
+    // Phase II / III — Global voice-mode state (A→D)
+    // ============================================================
+    void setMode(VoiceMode m)
+    {
+        mode_ = m;   // currently only VoiceMode::VoiceA is used
+    }
+
+    VoiceMode getMode() const noexcept
     {
         return mode_;
     }
-    // <<< END ADDED >>>
 
     void prepare(double sampleRate)
     {
         sampleRate_ = sampleRate;
         globalGain_.reset(sampleRate, 0.005); // 5 ms fade on poly changes
 
-        voices_.clear();
-        voices_.reserve(maxVoices);
-        for (int i = 0; i < maxVoices; ++i)
-        {
-            auto v = std::make_unique<VoiceA>();
-            v->prepare(sampleRate);
-            voices_.push_back(std::move(v));
-        }
+        // Phase III B6 — centralize voice allocation in a helper.
+        rebuildVoicesForMode();
 
         DBG("VoiceManager prepared " + juce::String(voices_.size()) +
             " voices at " + juce::String(sampleRate));
@@ -60,6 +84,9 @@ public:
     {
         static ParameterSnapshot snapshot;
         snapshot = makeSnapshot_();
+
+        // Phase III B2 — mode hook (currently inert)
+        applyModeConfiguration();
 
         // ============================================================
         // Phase 5-C.4 — Persistent CC Cache Re-application
@@ -202,14 +229,41 @@ public:
     }
 
 private:
+    // ============================================================
+    // Phase III B6 — central voice rebuild helper
+    // ============================================================
+    void rebuildVoicesForMode()
+    {
+        voices_.clear();
+        voices_.reserve(maxVoices);
+
+        // Same factory semantics as before: injectable → fallback.
+        auto makeVoice = [this](VoiceMode m)
+        {
+            if (voiceFactory_)
+                return voiceFactory_(m);
+            return makeVoiceForMode(m);
+        };
+
+        for (int i = 0; i < maxVoices; ++i)
+        {
+            auto v = makeVoice(mode_);
+            v->prepare(sampleRate_);
+            voices_.push_back(std::move(v));
+        }
+    }
+
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
     SnapshotMaker makeSnapshot_;  // stored callback
 
+    // Optional, mode-aware voice factory (B4). If empty, we defer to makeVoiceForMode().
+    VoiceFactory voiceFactory_;
+
     // ============================================================
-    // Phase II — Global voice-mode state (A→D)
+    // Phase II / III — Global voice-mode state (A→D)
     // ============================================================
-    int mode_ = 0;  // 0 == "voiceA" (only supported mode right now)
+    VoiceMode mode_ = VoiceMode::VoiceA;  // only supported mode right now
 
     // ============================================================
     // Persistent CC cache (Phase 5-C.4)

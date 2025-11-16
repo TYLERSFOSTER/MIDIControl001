@@ -58,9 +58,10 @@ ParameterSnapshot MIDIControl001AudioProcessor::makeSnapshotFromParams() const
 
     // ============================================================
     // NEW FOR PHASE II — read global voice mode
+    // (Phase III: convert to typed enum, still behavior-identical)
     // ============================================================
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::voiceMode))
-        s.voiceMode = static_cast<int>(p->load());
+        s.voiceMode = toVoiceMode(static_cast<int>(p->load()));
 
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::oscFreq))      s.oscFreq        = p->load();
     if (auto* p = apvts.getRawParameterValue(ParameterIDs::envAttack))    s.envAttack      = p->load();
@@ -94,7 +95,7 @@ ParameterSnapshot MIDIControl001AudioProcessor::makeSnapshotFromParams() const
 
     DBG("Snapshot built: vol=" << s.masterVolumeDb
         << " mix=" << s.masterMix
-        << " mode=" << s.voiceMode
+        << " mode=" << static_cast<int>(s.voiceMode)
         << " atk=" << s.envAttack
         << " rel=" << s.envRelease);
 
