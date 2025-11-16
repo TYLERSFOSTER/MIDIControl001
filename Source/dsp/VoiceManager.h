@@ -23,6 +23,21 @@ public:
 
     static constexpr int maxVoices = 32;
 
+    // ============================================================
+    // Phase II — Global voice-mode state (A→D)
+    // ============================================================
+    void setMode(int m)
+    {
+        mode_ = m;   // 0 == "voiceA" (current-only)
+    }
+
+    // >>> ADDED FOR A6 <<<
+    int getMode() const noexcept
+    {
+        return mode_;
+    }
+    // <<< END ADDED >>>
+
     void prepare(double sampleRate)
     {
         sampleRate_ = sampleRate;
@@ -190,6 +205,11 @@ private:
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
     SnapshotMaker makeSnapshot_;  // stored callback
+
+    // ============================================================
+    // Phase II — Global voice-mode state (A→D)
+    // ============================================================
+    int mode_ = 0;  // 0 == "voiceA" (only supported mode right now)
 
     // ============================================================
     // Persistent CC cache (Phase 5-C.4)
