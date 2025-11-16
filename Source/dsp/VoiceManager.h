@@ -56,6 +56,24 @@ public:
     }
 
     // ============================================================
+    // Phase III B9 — mode-aware routing hook (currently inert)
+    // Canonical entry point for block-level routing once
+    // VoiceDopp / VoiceLET / VoiceFM exist.
+    // ============================================================
+    void applyModeRouting(const ParameterSnapshot& snapshot)
+    {
+        juce::ignoreUnused(snapshot);
+
+        switch (mode_)
+        {
+            case VoiceMode::VoiceA:
+            default:
+                // Current plugin: only VoiceA exists; routing is trivial.
+                break;
+        }
+    }
+
+    // ============================================================
     // Phase II / III — Global voice-mode state (A→D)
     // ============================================================
     void setMode(VoiceMode m)
@@ -87,6 +105,11 @@ public:
     {
         static ParameterSnapshot snapshot;
         snapshot = makeSnapshot_();
+
+        // ============================================================
+        // Phase III B9 — mode-aware routing hook (NEW, currently inert)
+        // ============================================================
+        applyModeRouting(snapshot);
 
         // ============================================================
         // Phase III B8 — mode-change detection (NEW)
