@@ -73,6 +73,9 @@ public:
         sampleRate_ = sampleRate;
         globalGain_.reset(sampleRate, 0.005); // 5 ms fade on poly changes
 
+        // Phase III B7 — ensure lastMode_ is in sync at startup.
+        lastMode_ = mode_;
+
         // Phase III B6 — centralize voice allocation in a helper.
         rebuildVoicesForMode();
 
@@ -84,6 +87,11 @@ public:
     {
         static ParameterSnapshot snapshot;
         snapshot = makeSnapshot_();
+
+        // ============================================================
+        // Phase III B8 — mode-change detection (NEW)
+        // ============================================================
+        rebuildVoicesIfModeChanged();
 
         // Phase III B2 — mode hook (currently inert)
         applyModeConfiguration();
@@ -253,6 +261,18 @@ private:
         }
     }
 
+    // ============================================================
+    // Phase III B7 — mode-change detection scaffolding
+    // ============================================================
+    void rebuildVoicesIfModeChanged()
+    {
+        if (mode_ == lastMode_)
+            return;
+
+        lastMode_ = mode_;
+        rebuildVoicesForMode();
+    }
+
     std::vector<std::unique_ptr<BaseVoice>> voices_;
     const ParameterSnapshot* currentSnapshot_ = nullptr;
     SnapshotMaker makeSnapshot_;  // stored callback
@@ -263,7 +283,8 @@ private:
     // ============================================================
     // Phase II / III — Global voice-mode state (A→D)
     // ============================================================
-    VoiceMode mode_ = VoiceMode::VoiceA;  // only supported mode right now
+    VoiceMode mode_     = VoiceMode::VoiceA;  // only supported mode right now
+    VoiceMode lastMode_ = VoiceMode::VoiceA;  // cached for future B8 wiring
 
     // ============================================================
     // Persistent CC cache (Phase 5-C.4)
