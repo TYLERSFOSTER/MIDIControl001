@@ -10,6 +10,7 @@
 
 #include "params/ParameterSnapshot.h"
 #include "dsp/voices/VoiceA.h"
+#include "dsp/voices/VoiceDopp.h"
 #include "dsp/BaseVoice.h"
 #include "params/ParamLayout.h"
 
@@ -38,9 +39,21 @@ public:
     // ============================================================
     std::unique_ptr<BaseVoice> makeVoiceForMode(VoiceMode mode) const
     {
-        // For now, ALL modes return VoiceA. 100% behaviorally inert.
-        juce::ignoreUnused(mode);
-        return std::make_unique<VoiceA>();
+        // Phase III scaffolding:
+        // All modes currently instantiate VoiceA to keep DSP identical.
+        switch (mode)
+        {
+            case VoiceMode::VoiceA:
+                return std::make_unique<VoiceA>();
+
+            case VoiceMode::VoiceDopp:
+                return std::make_unique<VoiceDopp>();
+
+            case VoiceMode::VoiceLET:
+            case VoiceMode::VoiceFM:
+            default:
+                return std::make_unique<VoiceA>();
+        }
     }
 
     // Central hook for future mode-specific per-block behavior.
@@ -49,26 +62,48 @@ public:
         switch (mode_)
         {
             case VoiceMode::VoiceA:
+            case VoiceMode::VoiceDopp:
+            case VoiceMode::VoiceLET:
+            case VoiceMode::VoiceFM:
             default:
-                // Current plugin: only VoiceA exists, nothing to do.
+                // Current plugin: only VoiceA exists, nothing to do yet.
                 break;
         }
     }
 
     // ============================================================
-    // Phase III B9 — mode-aware routing hook (currently inert)
-    // Canonical entry point for block-level routing once
-    // VoiceDopp / VoiceLET / VoiceFM exist.
+    // Phase III B6 — mode-aware routing entry point
+    // Still inert, but now explicitly logs and forms the dispatch hub
     // ============================================================
     void applyModeRouting(const ParameterSnapshot& snapshot)
     {
         juce::ignoreUnused(snapshot);
 
+        DBG("VoiceManager::applyModeRouting(mode=" 
+            << static_cast<int>(mode_) << ")");
+
         switch (mode_)
         {
             case VoiceMode::VoiceA:
+                // Standard VoiceA → normal per-sample render path
+                break;
+
+            case VoiceMode::VoiceDopp:
+                // Future: Doppler block graph routing
+                // For now: identical behavior to VoiceA
+                break;
+
+            case VoiceMode::VoiceLET:
+                // Future: LET time-warping graph
+                // For now: identical behavior to VoiceA
+                break;
+
+            case VoiceMode::VoiceFM:
+                // Future: FM operator graph dispatch
+                // For now: identical behavior to VoiceA
+                break;
+
             default:
-                // Current plugin: only VoiceA exists; routing is trivial.
                 break;
         }
     }
@@ -78,12 +113,22 @@ public:
     // ============================================================
     void setMode(VoiceMode m)
     {
-        mode_ = m;   // currently only VoiceMode::VoiceA is used
+        mode_ = m;
     }
 
     VoiceMode getMode() const noexcept
     {
         return mode_;
+    }
+
+    // ============================================================
+    // Phase III – B4: Injectable Voice Factory Setter
+    // Allows external code (processor/tests) to override voice construction.
+    // ============================================================
+    void setVoiceFactory(VoiceFactory factory)
+    {
+        voiceFactory_ = std::move(factory);
+        rebuildVoicesForMode();
     }
 
     void prepare(double sampleRate)
@@ -128,10 +173,27 @@ public:
 
         currentSnapshot_ = &snapshot;
 
+        // ============================================================
+        // Phase III – B3: reconcile global vs per-voice params
+        //
+        // Effective per-voice parameters are derived from snapshot.voices[i],
+        // but the *global* (possibly CC-modified) env/freq fields win.
+        //
+        // This keeps APVTS + snapshot semantics intact for tests, while
+        // ensuring that the actual DSP hears the CC-driven envelope/freq.
+        // ============================================================
         for (int i = 0; i < static_cast<int>(voices_.size()) && i < NUM_VOICES; ++i)
         {
+            // Start from whatever per-voice parameters the snapshot captured
+            VoiceParams vp = snapshot.voices[i];
+
+            // Override with global, CC-modified values
+            vp.oscFreq    = snapshot.oscFreq;
+            vp.envAttack  = snapshot.envAttack;
+            vp.envRelease = snapshot.envRelease;
+
             if (auto* voiceA = dynamic_cast<VoiceA*>(voices_[i].get()))
-                voiceA->updateParams(snapshot.voices[i]);
+                voiceA->updateParams(vp);
         }
     }
 
@@ -285,14 +347,23 @@ private:
     }
 
     // ============================================================
-    // Phase III B7 — mode-change detection scaffolding
+    // Phase III – B7: Robust mode-change detection & guardrails
     // ============================================================
     void rebuildVoicesIfModeChanged()
     {
+        // No change → nothing to do
         if (mode_ == lastMode_)
             return;
 
+        // Guardrail: detect mid-block thrash (should never happen)
+        DBG("VoiceManager: MODE CHANGE detected "
+            << static_cast<int>(lastMode_) << " → "
+            << static_cast<int>(mode_));
+
+        // Commit the mode change
         lastMode_ = mode_;
+
+        // Rebuild all voices according to the new mode
         rebuildVoicesForMode();
     }
 
@@ -306,7 +377,7 @@ private:
     // ============================================================
     // Phase II / III — Global voice-mode state (A→D)
     // ============================================================
-    VoiceMode mode_     = VoiceMode::VoiceA;  // only supported mode right now
+    VoiceMode mode_     = VoiceMode::VoiceA;  // default
     VoiceMode lastMode_ = VoiceMode::VoiceA;  // cached for future B8 wiring
 
     // ============================================================

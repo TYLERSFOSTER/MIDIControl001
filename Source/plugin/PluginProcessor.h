@@ -43,6 +43,14 @@ public:
     void setStateInformation(const void*, int) override;
 
     // ============================================================
+    // Phase III – B5: expose factory injection for tests / tooling
+    // ============================================================
+    void setVoiceFactory(VoiceManager::VoiceFactory factory)
+    {
+        voiceManager_.setVoiceFactory(std::move(factory));
+    }
+
+    // ============================================================
     // Public Members
     // ============================================================
     juce::AudioProcessorValueTreeState apvts;

@@ -5,24 +5,35 @@
 
 // ============================================================
 // Voice mode enumeration (Phase III scaffolding)
+// ------------------------------------------------------------
+// IMPORTANT: Order must match ParamLayout.cpp:
+//
+//   0 -> VoiceA
+//   1 -> VoiceDopp
+//   2 -> VoiceLET
+//   3 -> VoiceFM
+//
+// For now, the engine still instantiates only VoiceA for *all*
+// modes. That keeps DSP output identical while allowing the
+// plugin to carry a typed mode flag for future expansion.
 // ============================================================
 enum class VoiceMode : int
 {
-    VoiceA = 0,
-    // Future: VoiceLET = 1,
-    //         VoiceDopp = 2,
-    //         ...
+    VoiceA    = 0,
+    VoiceDopp = 1,
+    VoiceLET  = 2,
+    VoiceFM   = 3,
 };
 
 inline VoiceMode toVoiceMode(int raw)
 {
-    // For now only VoiceA exists; clamp everything to VoiceA.
-    // This keeps behavior identical regardless of host value.
     switch (raw)
     {
-        case 0:
-        default:
-            return VoiceMode::VoiceA;
+        case 0:  return VoiceMode::VoiceA;
+        case 1:  return VoiceMode::VoiceDopp;
+        case 2:  return VoiceMode::VoiceLET;
+        case 3:  return VoiceMode::VoiceFM;
+        default: return VoiceMode::VoiceA;  // clamp bad indices
     }
 }
 

@@ -142,8 +142,8 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
 
         if (msg.isController())
         {
-            const int cc = msg.getControllerNumber();
-            const int val = msg.getControllerValue();
+            const int   cc   = msg.getControllerNumber();
+            const int   val  = msg.getControllerValue();
             const float norm = ccTo01(val);
 
             switch (cc)
@@ -160,10 +160,33 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
                     DBG("Mapped CC#2 (Breath) to masterMix = " << norm);
                     break;
 
+                // ====================================================
+                // NEW: Phase III-B2 — map CC3/4/5 to global DSP params
+                // (these are ALSO fed into VoiceManager::handleController)
+                // ====================================================
+                case 3:
+                    if (auto* p = apvts.getParameter(ParameterIDs::envAttack))
+                        p->setValueNotifyingHost(norm);
+                    DBG("Mapped CC#3 to Env Attack (global) = " << norm);
+                    break;
+
+                case 4:
+                    if (auto* p = apvts.getParameter(ParameterIDs::envRelease))
+                        p->setValueNotifyingHost(norm);
+                    DBG("Mapped CC#4 to Env Release (global) = " << norm);
+                    break;
+
+                case 5:
+                    if (auto* p = apvts.getParameter(ParameterIDs::oscFreq))
+                        p->setValueNotifyingHost(norm);
+                    DBG("Mapped CC#5 to Osc Frequency (global) = " << norm);
+                    break;
+
                 default:
                     break;
             }
 
+            // Always forward to voice engine (persistent CC cache etc.)
             voiceManager_.handleController(cc, norm);
         }
 
