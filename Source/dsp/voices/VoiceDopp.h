@@ -6,17 +6,12 @@
 #include <cmath>
 #include <atomic>
 
-// We need juce::Point; pull in the graphics module (which defines it).
+// We need juce::Point; pull in the graphics module.
 #include <juce_graphics/juce_graphics.h>
 
 // ============================================================
-// VoiceDopp — Phase IV Action 1 (Kinematic API Only)
-// ------------------------------------------------------------
-// This file intentionally contains ONLY:
-//   • Phase III skeleton behaviour (silence, activation tracking)
-//   • Minimal Action-1 API (time getter, position getter,
-//                          listener-controls setter)
-// Nothing else. No integration. No CC logic. No physics.
+// VoiceDopp — Phase IV Action 1  (Kinematic API Only)
+// Action 2 code may exist, but MUST remain disabled.
 // ============================================================
 
 class VoiceDopp : public BaseVoice
@@ -35,11 +30,14 @@ public:
         midiNote_   = -1;
         level_      = 0.0f;
 
-        // Action 1 state (does NOT do motion):
-        listenerPos_ = { 0.0f, 0.0f }; // always (0,0) in Action 1
-        timeSec_     = 0.0;            // stays 0.0 in Action 1
-        speedNorm_   = 0.0f;           // just stored
-        headingNorm_ = 0.5f;           // default: “+x” direction
+        // Kinematic state
+        listenerPos_ = { 0.0f, 0.0f };
+        timeSec_     = 0.0;
+        speedNorm_   = 0.0f;
+        headingNorm_ = 0.5f;
+
+        // Action-2 feature gate MUST remain off for Action-1 tests
+        enableTimeAccumulation_ = false;
     }
 
     // ------------------------------------------------------------
@@ -56,10 +54,9 @@ public:
         active_   = true;
         level_    = 1.0f;
 
-        // Action-1 behaviour: reset kinematic state
         listenerPos_ = { 0.0f, 0.0f };
         timeSec_     = 0.0;
-        // speedNorm_ / headingNorm_ are preserved as “controls”
+        // keep stored controls
     }
 
     // ------------------------------------------------------------
@@ -72,8 +69,9 @@ public:
     }
 
     // ------------------------------------------------------------
-    // render() — Phase III skeleton, silent output.
-    // NO physics, NO kinematics, NO integration.
+    // render()
+    // Action-1: silent + inert
+    // Action-2: time accumulation (guarded)
     // ------------------------------------------------------------
     void render(float* buffer, int numSamples) override
     {
@@ -83,15 +81,24 @@ public:
             return;
         }
 
-        // Still silent in Action 1
+        // ======================================
+        // Action-2: time accumulator (DISABLED)
+        // ======================================
+        if (enableTimeAccumulation_)
+        {
+            if (sampleRate_ > 0.0)
+            {
+                double dt = 1.0 / sampleRate_;
+                timeSec_ += static_cast<double>(numSamples) * dt;
+            }
+        }
+
+        // Still silent (Actions 1–2)
         std::fill(buffer, buffer + numSamples, 0.0f);
     }
 
     // ------------------------------------------------------------
-    // Action 1: Kinematic API
-    //   • setListenerControls: writes speed / heading (no motion)
-    //   • getListenerPosition: returns current position (always (0,0))
-    //   • getListenerTimeSeconds: returns current time (always 0.0)
+    // Action-1 Kinematic API
     // ------------------------------------------------------------
     void setListenerControls(float speedNorm, float headingNorm)
     {
@@ -110,14 +117,19 @@ public:
     }
 
     // ------------------------------------------------------------
-    // State queries (BaseVoice interface)
+    // Action-2 control (tests will call this later)
+    // ------------------------------------------------------------
+    void enableTimeAccumulation(bool shouldEnable)
+    {
+        enableTimeAccumulation_ = shouldEnable;
+    }
+
+    // ------------------------------------------------------------
+    // State queries
     // ------------------------------------------------------------
     bool  isActive() const override         { return active_; }
     int   getNote() const noexcept override { return midiNote_; }
     float getCurrentLevel() const override  { return level_; }
-
-    // We inherit BaseVoice::handleController(int, float) unchanged
-    // for Action 1 (no per-voice CC logic yet).
 
 private:
     // Phase III skeleton state
@@ -126,11 +138,12 @@ private:
     int    midiNote_   = -1;
     float  level_      = 0.0f;
 
-    // ------------------------------------------------------------
-    // Action-1 state (NO behaviour yet!)
-    // ------------------------------------------------------------
-    juce::Point<float> listenerPos_;   // always (0,0) in Action 1
-    double             timeSec_;       // always 0.0 in Action 1
-    float              speedNorm_;     // stored only
-    float              headingNorm_;   // stored only
+    // Action-1 state
+    juce::Point<float> listenerPos_;
+    double             timeSec_;
+    float              speedNorm_;
+    float              headingNorm_;
+
+    // Action-2 feature flag (MUST remain false for Action-1 tests)
+    bool               enableTimeAccumulation_ = false;
 };
