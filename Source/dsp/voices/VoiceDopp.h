@@ -11,13 +11,14 @@
 #include <juce_graphics/juce_graphics.h>
 
 // ============================================================
-// VoiceDopp — Phase IV Action 1–5
+// VoiceDopp — Phase IV Action 1–6
 // ------------------------------------------------------------
 // Action 1: Kinematic API (position, time, listener controls)
 // Action 2: Time accumulator (feature-gated, still OFF)
 // Action 3.1: Heading + speed mapping (pure math only)
 // Action 4: Listener trajectory integration (gated)
 // Action 5: Emitter lattice construction (pure math only)
+// Action 6: Distance + retarded time (pure math only)
 // ============================================================
 
 class VoiceDopp : public BaseVoice
@@ -110,7 +111,7 @@ public:
             listenerPos_.y += static_cast<float>(vy * dt);
         }
 
-        // Still silent for Actions 1–5
+        // Still silent for Actions 1–6
         std::fill(buffer, buffer + numSamples, 0.0f);
     }
 
@@ -254,6 +255,24 @@ public:
     }
 
     // ------------------------------------------------------------
+    // Action-6: Distance + Retarded Time (pure math helpers)
+    // ------------------------------------------------------------
+
+    // r_i(t) = || x_i – x_L(t) ||
+    double computeDistanceToEmitter(const juce::Point<float>& emitterPos) const
+    {
+        double dx = static_cast<double>(emitterPos.x) - static_cast<double>(listenerPos_.x);
+        double dy = static_cast<double>(emitterPos.y) - static_cast<double>(listenerPos_.y);
+        return std::sqrt(dx * dx + dy * dy);
+    }
+
+    // t_ret = t - r / c, using current listener timeSec_.
+    double computeRetardedTime(double distance) const
+    {
+        return timeSec_ - distance / speedOfSound_;
+    }
+
+    // ------------------------------------------------------------
     // State queries
     // ------------------------------------------------------------
     bool  isActive() const override         { return active_; }
@@ -281,8 +300,9 @@ private:
     float orientationNorm_ = 0.0f;  // normalized orientation
 
     // ------------------------------------------------------------
-    // Action-3.1 / Action-5 constants
+    // Action-3.1 / Action-5 / Action-6 constants
     // ------------------------------------------------------------
     static constexpr double vMax_          = 1.0;
-    static constexpr double deltaParallel_ = 1.0; // Δ∥
+    static constexpr double deltaParallel_ = 1.0;   // Δ∥
+    static constexpr double speedOfSound_  = 343.0; // m/s, nominal
 };
