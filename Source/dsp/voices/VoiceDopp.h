@@ -11,7 +11,7 @@
 #include <juce_graphics/juce_graphics.h>
 
 // ============================================================
-// VoiceDopp — Phase IV Action 1–6
+// VoiceDopp — Phase IV Action 1–7
 // ------------------------------------------------------------
 // Action 1: Kinematic API (position, time, listener controls)
 // Action 2: Time accumulator (feature-gated, still OFF)
@@ -19,6 +19,7 @@
 // Action 4: Listener trajectory integration (gated)
 // Action 5: Emitter lattice construction (pure math only)
 // Action 6: Distance + retarded time (pure math only)
+// Action 7: Source functions at retarded time (pure math only)
 // ============================================================
 
 class VoiceDopp : public BaseVoice
@@ -49,6 +50,10 @@ public:
 
         // Action-2 gate stays off by default
         enableTimeAccumulation_ = false;
+
+        // Action-7: reset envelope times to defaults
+        noteOnTimeSec_  = 0.0;
+        noteOffTimeSec_ = std::numeric_limits<double>::infinity();
     }
 
     // ------------------------------------------------------------
@@ -67,6 +72,11 @@ public:
 
         listenerPos_ = { 0.0f, 0.0f };
         timeSec_     = 0.0;
+
+        // For now we *do not* couple ADSR timing to noteOn/noteOff.
+        // Action 7 keeps source functions purely mathematical.
+        noteOnTimeSec_  = 0.0;
+        noteOffTimeSec_ = std::numeric_limits<double>::infinity();
     }
 
     // ------------------------------------------------------------
@@ -76,6 +86,10 @@ public:
     {
         active_ = false;
         level_  = 0.0f;
+
+        // ADSR release coupling to noteOff will be wired later,
+        // when we hook real audio rendering. For Action 7 we keep
+        // the source math independent.
     }
 
     // ------------------------------------------------------------
@@ -111,7 +125,7 @@ public:
             listenerPos_.y += static_cast<float>(vy * dt);
         }
 
-        // Still silent for Actions 1–6
+        // Still silent for Actions 1–7
         std::fill(buffer, buffer + numSamples, 0.0f);
     }
 
@@ -273,6 +287,147 @@ public:
     }
 
     // ------------------------------------------------------------
+    // Action-7: Source functions evaluated at retarded time
+    // ------------------------------------------------------------
+    //
+    // These are *pure* functions of t_ret. They do NOT touch
+    // render(), do NOT allocate, and do NOT change state.
+    //
+    // A_env(t_ret): ADSR envelope (attack/decay/sustain/release)
+    // A_field(t_ret): slow field pulse envelope
+    // s_carrier(t_ret): sinusoidal carrier at baseFrequencyHz_
+
+    // TEST-ONLY: configure ADSR parameters.
+    void setAdsrParamsForTest(double attackSec,
+                              double decaySec,
+                              double sustainLevel,
+                              double releaseSec)
+    {
+        adsrAttackSec_     = attackSec;
+        adsrDecaySec_      = decaySec;
+        adsrSustainLevel_  = sustainLevel;
+        adsrReleaseSec_    = releaseSec;
+    }
+
+    // TEST-ONLY: configure note on/off times in physical seconds.
+    void setAdsrTimesForTest(double tOn, double tOff)
+    {
+        noteOnTimeSec_  = tOn;
+        noteOffTimeSec_ = tOff;
+    }
+
+    // TEST-ONLY: configure base frequency and field pulse rate.
+    void setBaseFrequencyForTest(double freqHz)
+    {
+        baseFrequencyHz_ = freqHz;
+    }
+
+    void setFieldPulseFrequencyForTest(double freqHz)
+    {
+        fieldPulseHz_ = freqHz;
+    }
+
+    // Carrier: s(t_ret) = sin(2π f t_ret + φ0)
+    double evalCarrierAtRetardedTime(double tRet) const
+    {
+        double phase = 2.0 * M_PI * baseFrequencyHz_ * tRet + basePhaseRad_;
+        return std::sin(phase);
+    }
+
+    // Field pulse: A_field(t_ret) = 0.5 * (1 + sin(2π μ t_ret))
+    double evalFieldPulseAtRetardedTime(double tRet) const
+    {
+        double phase = 2.0 * M_PI * fieldPulseHz_ * tRet;
+        return 0.5 * (1.0 + std::sin(phase));
+    }
+
+    // ADSR envelope at physical emission time t_ret
+    double evalAdsrAtRetardedTime(double tRet) const
+    {
+        // Shift by note-on time: local emission time
+        double t = tRet - noteOnTimeSec_;
+
+        if (t <= 0.0)
+            return 0.0;
+
+        const double attack  = adsrAttackSec_;
+        const double decay   = adsrDecaySec_;
+        const double release = adsrReleaseSec_;
+        const double sustain = adsrSustainLevel_;
+
+        const double attackEnd = attack;
+        const double decayEnd  = attack + decay;
+
+        const bool hasRelease  =
+            std::isfinite(noteOffTimeSec_) && release > 0.0;
+
+        const double tReleaseStart =
+            hasRelease
+                ? (noteOffTimeSec_ - noteOnTimeSec_)
+                : std::numeric_limits<double>::infinity();
+
+        // -------------------------------
+        // 1) Attack / Decay / Sustain
+        // -------------------------------
+        if (!hasRelease || t <= tReleaseStart)
+        {
+            // Attack: 0 → 1 over [0, attack]
+            if (attack > 0.0 && t < attackEnd)
+            {
+                return t / attack;
+            }
+
+            // Decay: 1 → sustain over [attack, attack+decay]
+            if (decay > 0.0 && t < decayEnd)
+            {
+                double u = (t - attackEnd) / decay;
+                // Linear from 1 to sustain
+                return 1.0 + (sustain - 1.0) * u;
+            }
+
+            // Sustain: flat
+            return sustain;
+        }
+
+        // -------------------------------
+        // 2) Release segment
+        // -------------------------------
+        double tRel = t - tReleaseStart;
+        if (tRel >= release)
+            return 0.0;
+
+        // Envelope level at release start:
+        double envAtReleaseStart = 0.0;
+
+        if (tReleaseStart <= 0.0)
+        {
+            envAtReleaseStart = 0.0;
+        }
+        else if (attack > 0.0 && tReleaseStart < attackEnd)
+        {
+            // Releasing during attack
+            envAtReleaseStart = tReleaseStart / attack;
+        }
+        else if (decay > 0.0 && tReleaseStart < decayEnd)
+        {
+            // Releasing during decay
+            double u = (tReleaseStart - attackEnd) / decay;
+            envAtReleaseStart = 1.0 + (sustain - 1.0) * u;
+        }
+        else
+        {
+            // Releasing after decay -> sustain level
+            envAtReleaseStart = sustain;
+        }
+
+        double r = 1.0 - (tRel / release);
+        double env = envAtReleaseStart * r;
+        if (env < 0.0)
+            env = 0.0;
+        return env;
+    }
+
+    // ------------------------------------------------------------
     // State queries
     // ------------------------------------------------------------
     bool  isActive() const override         { return active_; }
@@ -298,6 +453,21 @@ private:
     // Action-5 emitter field parameters (per voice instance)
     float densityNorm_     = 0.0f;  // ρ in [0,1]
     float orientationNorm_ = 0.0f;  // normalized orientation
+
+    // ------------------------------------------------------------
+    // Action-7 source parameters (per voice instance)
+    // ------------------------------------------------------------
+    double baseFrequencyHz_   = 220.0;   // λ_i
+    double basePhaseRad_      = 0.0;     // φ_i
+    double fieldPulseHz_      = 1.0;     // μ_pulse
+
+    double adsrAttackSec_     = 0.01;    // seconds
+    double adsrDecaySec_      = 0.1;
+    double adsrSustainLevel_  = 0.7;     // [0,1]
+    double adsrReleaseSec_    = 0.2;
+
+    double noteOnTimeSec_     = 0.0;
+    double noteOffTimeSec_    = std::numeric_limits<double>::infinity();
 
     // ------------------------------------------------------------
     // Action-3.1 / Action-5 / Action-6 constants
