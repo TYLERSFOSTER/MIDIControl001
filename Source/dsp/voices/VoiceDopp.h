@@ -6,6 +6,7 @@
 #include <cmath>
 #include <atomic>
 #include <limits>  // for std::numeric_limits
+#include <vector>
 
 // We need juce::Point; pull in the graphics module.
 #include <juce_graphics/juce_graphics.h>
@@ -147,6 +148,21 @@ public:
     double getListenerTimeSeconds() const
     {
         return timeSec_;
+    }
+
+    // ------------------------------------------------------------
+    // NEW: Action-9 diagnostic exposure (public API)
+    // ------------------------------------------------------------
+    /** Returns the instantaneous listener velocity vector v(t). */
+    juce::Point<float> getListenerVelocity() const noexcept
+    {
+        double v = computeSpeed();
+        auto   u = computeUnitVector();
+
+        return {
+            static_cast<float>(v * static_cast<double>(u.x)),
+            static_cast<float>(v * static_cast<double>(u.y))
+        };
     }
 
     // ------------------------------------------------------------
@@ -469,6 +485,52 @@ public:
     bool  isActive() const override         { return active_; }
     int   getNote() const noexcept override { return midiNote_; }
     float getCurrentLevel() const override  { return level_; }
+
+    // ------------------------------------------------------------
+    // Action-9: Lattice window sampling + best-emitter selection
+    // ------------------------------------------------------------
+    struct EmitterCandidate
+    {
+        juce::Point<float> position {};  // world-space emitter position
+        int k = 0;                       // lattice index k (normal direction)
+        int m = 0;                       // lattice index m (tangent direction)
+        double score = 0.0;              // predictive score (Action-8)
+    };
+
+    // Scan a finite (k,m) window, compute predictive scores, and
+    // return the best emitter according to Action-8.
+    //
+    // If the window is "empty" (kMin > kMax or mMin > mMax),
+    // this returns a default-constructed candidate with score = 0.
+    EmitterCandidate findBestEmitterInWindow(int kMin, int kMax,
+                                             int mMin, int mMax) const
+    {
+        EmitterCandidate best;
+        bool hasBest = false;
+
+        if (kMin > kMax || mMin > mMax)
+            return best; // default (score = 0.0)
+
+        for (int k = kMin; k <= kMax; ++k)
+        {
+            for (int m = mMin; m <= mMax; ++m)
+            {
+                auto pos = computeEmitterPosition(k, m);
+                double s = computePredictiveScoreForEmitter(pos);
+
+                if (!hasBest || s > best.score)
+                {
+                    best.position = pos;
+                    best.k        = k;
+                    best.m        = m;
+                    best.score    = s;
+                    hasBest       = true;
+                }
+            }
+        }
+
+        return best;
+    }
 
 private:
     // Phase III skeleton state
