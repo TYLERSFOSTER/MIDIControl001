@@ -20,6 +20,7 @@
 // Action 5: Emitter lattice construction (pure math only)
 // Action 6: Distance + retarded time (pure math only)
 // Action 7: Source functions at retarded time (pure math only)
+// Action 8: Predictive Scoring (public DSP API)
 // ============================================================
 
 class VoiceDopp : public BaseVoice
@@ -290,14 +291,8 @@ public:
     // Action-7: Source functions evaluated at retarded time
     // ------------------------------------------------------------
     //
-    // These are *pure* functions of t_ret. They do NOT touch
-    // render(), do NOT allocate, and do NOT change state.
-    //
-    // A_env(t_ret): ADSR envelope (attack/decay/sustain/release)
-    // A_field(t_ret): slow field pulse envelope
-    // s_carrier(t_ret): sinusoidal carrier at baseFrequencyHz_
+    // These are *pure* functions of t_ret.
 
-    // TEST-ONLY: configure ADSR parameters.
     void setAdsrParamsForTest(double attackSec,
                               double decaySec,
                               double sustainLevel,
@@ -309,14 +304,12 @@ public:
         adsrReleaseSec_    = releaseSec;
     }
 
-    // TEST-ONLY: configure note on/off times in physical seconds.
     void setAdsrTimesForTest(double tOn, double tOff)
     {
         noteOnTimeSec_  = tOn;
         noteOffTimeSec_ = tOff;
     }
 
-    // TEST-ONLY: configure base frequency and field pulse rate.
     void setBaseFrequencyForTest(double freqHz)
     {
         baseFrequencyHz_ = freqHz;
@@ -327,24 +320,20 @@ public:
         fieldPulseHz_ = freqHz;
     }
 
-    // Carrier: s(t_ret) = sin(2π f t_ret + φ0)
     double evalCarrierAtRetardedTime(double tRet) const
     {
         double phase = 2.0 * M_PI * baseFrequencyHz_ * tRet + basePhaseRad_;
         return std::sin(phase);
     }
 
-    // Field pulse: A_field(t_ret) = 0.5 * (1 + sin(2π μ t_ret))
     double evalFieldPulseAtRetardedTime(double tRet) const
     {
         double phase = 2.0 * M_PI * fieldPulseHz_ * tRet;
         return 0.5 * (1.0 + std::sin(phase));
     }
 
-    // ADSR envelope at physical emission time t_ret
     double evalAdsrAtRetardedTime(double tRet) const
     {
-        // Shift by note-on time: local emission time
         double t = tRet - noteOnTimeSec_;
 
         if (t <= 0.0)
@@ -366,37 +355,26 @@ public:
                 ? (noteOffTimeSec_ - noteOnTimeSec_)
                 : std::numeric_limits<double>::infinity();
 
-        // -------------------------------
-        // 1) Attack / Decay / Sustain
-        // -------------------------------
         if (!hasRelease || t <= tReleaseStart)
         {
-            // Attack: 0 → 1 over [0, attack]
             if (attack > 0.0 && t < attackEnd)
             {
                 return t / attack;
             }
 
-            // Decay: 1 → sustain over [attack, attack+decay]
             if (decay > 0.0 && t < decayEnd)
             {
                 double u = (t - attackEnd) / decay;
-                // Linear from 1 to sustain
                 return 1.0 + (sustain - 1.0) * u;
             }
 
-            // Sustain: flat
             return sustain;
         }
 
-        // -------------------------------
-        // 2) Release segment
-        // -------------------------------
         double tRel = t - tReleaseStart;
         if (tRel >= release)
             return 0.0;
 
-        // Envelope level at release start:
         double envAtReleaseStart = 0.0;
 
         if (tReleaseStart <= 0.0)
@@ -405,18 +383,15 @@ public:
         }
         else if (attack > 0.0 && tReleaseStart < attackEnd)
         {
-            // Releasing during attack
             envAtReleaseStart = tReleaseStart / attack;
         }
         else if (decay > 0.0 && tReleaseStart < decayEnd)
         {
-            // Releasing during decay
             double u = (tReleaseStart - attackEnd) / decay;
             envAtReleaseStart = 1.0 + (sustain - 1.0) * u;
         }
         else
         {
-            // Releasing after decay -> sustain level
             envAtReleaseStart = sustain;
         }
 
@@ -426,6 +401,67 @@ public:
             env = 0.0;
         return env;
     }
+
+    // ------------------------------------------------------------
+    // ------------------------------------------------------------
+    // **Action-8: Predictive Scoring (public DSP API)**
+    // ------------------------------------------------------------
+    // ------------------------------------------------------------
+
+    // Predict listener position at t + τ
+    juce::Point<float> predictListenerPosition(double horizonSeconds) const
+    {
+        auto u = computeUnitVector();
+        double v = computeSpeed();
+
+        double dx = v * static_cast<double>(u.x) * horizonSeconds;
+        double dy = v * static_cast<double>(u.y) * horizonSeconds;
+
+        return {
+            listenerPos_.x + static_cast<float>(dx),
+            listenerPos_.y + static_cast<float>(dy)
+        };
+    }
+
+    // ------------------------------------------------------------
+    // FIXED SIGNATURE — matches unit tests and specification
+    // ------------------------------------------------------------
+    double computePredictiveRetardedTime(double horizonSeconds,
+                                        const juce::Point<float>& emitterPos) const
+    {
+        // First predict listener position at future time t + τ
+        auto xL = predictListenerPosition(horizonSeconds);
+
+        // Distance from predicted listener position to emitter
+        double dx = static_cast<double>(emitterPos.x) - static_cast<double>(xL.x);
+        double dy = static_cast<double>(emitterPos.y) - static_cast<double>(xL.y);
+        double r  = std::sqrt(dx * dx + dy * dy);
+
+        // Future listener time = t + τ
+        double tFuture = timeSec_ + horizonSeconds;
+
+        // Retarded time at predicted future state
+        return tFuture - r / speedOfSound_;
+    }
+
+    // Full predictive score using horizons {0, H/2, H}
+    double computePredictiveScoreForEmitter(const juce::Point<float>& emitterPos) const
+    {
+        const double H = predictiveHorizonSeconds_;
+        const double horizons[3] = { 0.0, 0.5 * H, H };
+
+        double best = -std::numeric_limits<double>::infinity();
+
+        for (double tau : horizons)
+        {
+            // NOTE: signature fixed — tau first, emitter second
+            double tRet = computePredictiveRetardedTime(tau, emitterPos);
+            if (tRet > best)
+                best = tRet;
+        }
+
+        return best;
+    } 
 
     // ------------------------------------------------------------
     // State queries
@@ -457,13 +493,13 @@ private:
     // ------------------------------------------------------------
     // Action-7 source parameters (per voice instance)
     // ------------------------------------------------------------
-    double baseFrequencyHz_   = 220.0;   // λ_i
-    double basePhaseRad_      = 0.0;     // φ_i
-    double fieldPulseHz_      = 1.0;     // μ_pulse
+    double baseFrequencyHz_   = 220.0;
+    double basePhaseRad_      = 0.0;
+    double fieldPulseHz_      = 1.0;
 
-    double adsrAttackSec_     = 0.01;    // seconds
+    double adsrAttackSec_     = 0.01;
     double adsrDecaySec_      = 0.1;
-    double adsrSustainLevel_  = 0.7;     // [0,1]
+    double adsrSustainLevel_  = 0.7;
     double adsrReleaseSec_    = 0.2;
 
     double noteOnTimeSec_     = 0.0;
@@ -473,6 +509,11 @@ private:
     // Action-3.1 / Action-5 / Action-6 constants
     // ------------------------------------------------------------
     static constexpr double vMax_          = 1.0;
-    static constexpr double deltaParallel_ = 1.0;   // Δ∥
-    static constexpr double speedOfSound_  = 343.0; // m/s, nominal
+    static constexpr double deltaParallel_ = 1.0;
+    static constexpr double speedOfSound_  = 343.0;
+
+    // ------------------------------------------------------------
+    // **Action-8 constant**
+    // ------------------------------------------------------------
+    static constexpr double predictiveHorizonSeconds_ = 1.0; // H = 1s
 };
