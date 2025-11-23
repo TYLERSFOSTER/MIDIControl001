@@ -68,26 +68,52 @@ public:
         (void)velocity;
 
         // ============================================================
-        // A10-1: latch synthesis-relevant globals from snapshot.
-        // (Still silent; just stores params for later Actions.)
+        // A10-1: baseFrequencyHz_
         // ============================================================
-        // A10-1: latch synthesis-relevant globals from snapshot OR derived MIDI pitch
         if (pitchFromMidi_)
         {
-            // MIDI -> frequency conversion relative to snapshot oscFreq (A4 tuning)
+            // MIDI → frequency relative to A4 defined by snapshot.oscFreq
             const double fA4 = snapshot.oscFreq;
             baseFrequencyHz_ =
                 fA4 * std::pow(2.0, (static_cast<double>(midiNote) - 69.0) / 12.0);
         }
         else
         {
-            // Test-required behavior: snapshot.oscFreq must pass through untouched
+            // Test-required behavior: snapshot.oscFreq must pass through unchanged
             baseFrequencyHz_ = snapshot.oscFreq;
         }
 
-        adsrAttackSec_    = snapshot.envAttack;
-        adsrReleaseSec_   = snapshot.envRelease;
+        // Envelope globals
+        adsrAttackSec_  = snapshot.envAttack;
+        adsrReleaseSec_ = snapshot.envRelease;
 
+        // ============================================================
+        // Phase IV — CC sampling at note-on (Spec §1)
+        // These CC values were cached earlier in handleController().
+        // Only overwrite defaults if the CC was actually received.
+        // ============================================================
+
+        // --- CC4: field pulse frequency μ_pulse ---
+        if (hasCC4_)
+        {
+            fieldPulseHz_ = mapFieldPulseNormToHz(cc4FieldPulseNorm_);
+        }
+
+        // --- CC7: lattice orientation φ ---
+        if (hasCC7_)
+        {
+            orientationNorm_ = cc7OrientationNorm_;
+        }
+
+        // --- CC8: lattice density ρ ---
+        if (hasCC8_)
+        {
+            densityNorm_ = cc8DensityNorm_;
+        }
+
+        // ============================================================
+        // Standard VoiceDopp activation
+        // ============================================================
         midiNote_ = midiNote;
         active_   = true;
         level_    = 1.0f;
@@ -95,8 +121,7 @@ public:
         listenerPos_ = { 0.0f, 0.0f };
         timeSec_     = 0.0;
 
-        // For now we *do not* couple ADSR timing to noteOn/noteOff.
-        // Action 7 keeps source functions purely mathematical.
+        // For now ADSR timing stays mathematical (per your A7 spec):
         noteOnTimeSec_  = 0.0;
         noteOffTimeSec_ = std::numeric_limits<double>::infinity();
     }
@@ -240,6 +265,43 @@ public:
     double getListenerTimeSeconds() const
     {
         return timeSec_;
+    }
+
+    // ------------------------------------------------------------
+    // CC routing (Spec §1)
+    // VoiceManager already dispatches CC to all voices.
+    // We cache CC4/7/8 for note-on sampling, and apply CC5/6 live.
+    // ------------------------------------------------------------
+    void handleController(int cc, float norm) override
+    {
+        switch (cc)
+        {
+            case 4: // CC4: field pulse frequency (sampled at note-on)
+                cc4FieldPulseNorm_ = norm;
+                hasCC4_ = true;
+                break;
+
+            case 5: // CC5: listener speed scalar s(t), continuous/blockwise
+                speedNorm_ = norm;
+                break;
+
+            case 6: // CC6: listener heading η(t), continuous/blockwise
+                headingNorm_ = norm;
+                break;
+
+            case 7: // CC7: lattice orientation φ (sampled at note-on)
+                cc7OrientationNorm_ = norm;
+                hasCC7_ = true;
+                break;
+
+            case 8: // CC8: lattice density ρ (sampled at note-on)
+                cc8DensityNorm_ = norm;
+                hasCC8_ = true;
+                break;
+
+            default:
+                break; // ignore other CC in VoiceDopp for now
+        }
     }
 
     // ------------------------------------------------------------
@@ -720,6 +782,18 @@ private:
     double noteOffTimeSec_    = std::numeric_limits<double>::infinity();
 
     // ------------------------------------------------------------
+    // Phase IV CC cache for VoiceDopp (Spec §1)
+    // CC4/7/8 sampled at note-on. CC5/6 are continuous/blockwise.
+    // ------------------------------------------------------------
+    float cc4FieldPulseNorm_   = 0.0f;
+    float cc7OrientationNorm_  = 0.0f;
+    float cc8DensityNorm_      = 0.0f;
+
+    bool  hasCC4_ = false;
+    bool  hasCC7_ = false;
+    bool  hasCC8_ = false;
+
+    // ------------------------------------------------------------
     // Action-3.1 / Action-5 / Action-6 constants
     // ------------------------------------------------------------
     static constexpr double vMax_          = 1.0;
@@ -740,6 +814,19 @@ private:
     {
         const double rSafe = (r < attenuationRMin_) ? attenuationRMin_ : r;
         return std::exp(-attenuationAlpha_ * rSafe) / rSafe;
+    }
+
+    // Map CC4 normalized [0,1] to a usable pulse frequency in Hz.
+    // Spec doesn't fix a range, so choose a sane exponential range.
+    double mapFieldPulseNormToHz(float norm) const noexcept
+    {
+        const double lo = 0.1;   // Hz
+        const double hi = 20.0;  // Hz
+        const double n  = juce::jlimit(0.0, 1.0, static_cast<double>(norm));
+
+        const double logLo = std::log(lo);
+        const double logHi = std::log(hi);
+        return std::exp(logLo + (logHi - logLo) * n);
     }
 
     // Small default lattice window for audio (tune later)

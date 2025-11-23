@@ -54,17 +54,18 @@ When `voiceMode == VoiceDopp`, CC semantics are:
 | CC1 | Master Volume | handled in APVTS (global) |
 | CC2 | Mix | handled in APVTS (global) |
 | CC3 | (reserved or ADSR override if desired) | optional |
-| CC4 | Field pulse frequency \( \mu_{	ext{pulse}} \) | sampled at note-on |
-| CC5 | Listener speed scalar \( s(t) \) | blockwise-updated |
-| CC6 | Listener heading \( 	heta(t) \) | blockwise-updated |
-| CC7 | Lattice orientation \( arphi \) | sampled at note-on |
-| CC8 | Lattice density \( ho \) | sampled at note-on |
+| CC4 | Field pulse frequency \($\mu_{\text{pulse}}$\) | sampled at note-on |
+| CC5 | Listener speed scalar \($s(t)$\) | blockwise-updated |
+| CC6 | Listener heading \($\eta(t)$ \) | blockwise-updated |
+| CC7 | Lattice orientation \($\varphi$\) | sampled at note-on |
+| CC8 | Lattice density | sampled at note-on |
 
 ### Note-On Sampling
 
 For note-on events:
 
-- Lattice parameters \( arphi, ho, \mu_{	ext{pulse}} \) are sampled **at the exact MIDI timestamp** inside the block.
+- Lattice parameters \( arphi, 
+ho, \mu_{	ext{pulse}} \) are sampled **at the exact MIDI timestamp** inside the block.
 - VoiceDopp receives these values via:
   - `noteOn(...)`
   - internal CC state that was updated *before* processing the note-on event.
@@ -120,8 +121,11 @@ At note-on, VoiceDopp constructs an emitter lattice using parameters:
   \[
   \Delta^\perp =
   egin{cases}
-  \infty & ho = 0 \
-  1/ho & ho > 0
+  \infty & 
+ho = 0 \
+  1/
+ho & 
+ho > 0
   \end{cases}
   \]
 - Along-line spacing \( \Delta^\parallel = 1 \)
