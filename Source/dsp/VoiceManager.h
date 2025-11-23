@@ -231,6 +231,9 @@ public:
                                   });
         }
 
+        if (auto* vd = dynamic_cast<VoiceDopp*>(it->get()))
+            vd->setPitchFromMidi(true);
+
         (*it)->noteOn(*currentSnapshot_, midiNote, velocity);
 
         DBG("[VM] NoteOn midiNote=" << midiNote);
@@ -362,9 +365,7 @@ private:
             auto v = makeVoice(mode_);
             v->prepare(sampleRate_);
 
-            // Phase IV A11-1 — new voices inherit audioEnabled flag
-            if (auto* vd = dynamic_cast<VoiceDopp*>(v.get()))
-                vd->setAudioSynthesisEnabled(audioEnabled_);
+            v->setAudioSynthesisEnabled(audioEnabled_);
 
             voices_.push_back(std::move(v));
         }
@@ -423,8 +424,7 @@ private:
     {
         for (auto& v : voices_)
         {
-            if (auto* vd = dynamic_cast<VoiceDopp*>(v.get()))
-                vd->setAudioSynthesisEnabled(audioEnabled_);
+            v->setAudioSynthesisEnabled(audioEnabled_);
             // Other voice types ignore this switch.
         }
     }

@@ -71,7 +71,20 @@ public:
         // A10-1: latch synthesis-relevant globals from snapshot.
         // (Still silent; just stores params for later Actions.)
         // ============================================================
-        baseFrequencyHz_  = snapshot.oscFreq;
+        // A10-1: latch synthesis-relevant globals from snapshot OR derived MIDI pitch
+        if (pitchFromMidi_)
+        {
+            // MIDI -> frequency conversion relative to snapshot oscFreq (A4 tuning)
+            const double fA4 = snapshot.oscFreq;
+            baseFrequencyHz_ =
+                fA4 * std::pow(2.0, (static_cast<double>(midiNote) - 69.0) / 12.0);
+        }
+        else
+        {
+            // Test-required behavior: snapshot.oscFreq must pass through untouched
+            baseFrequencyHz_ = snapshot.oscFreq;
+        }
+
         adsrAttackSec_    = snapshot.envAttack;
         adsrReleaseSec_   = snapshot.envRelease;
 
@@ -125,20 +138,25 @@ public:
         const double tStart = timeSec_;
         const auto   posStart = listenerPos_;
 
-        if (enableTimeAccumulation_ && sr > 0.0)
+        // ============================================================
+        // FIX 1 — advance time when audioEnabled_ (silent bug fix)
+        // ============================================================
+        if ((audioEnabled_ || enableTimeAccumulation_) && sr > 0.0)
         {
-            // Accumulate global listener time
             timeSec_ += dtBlock;
 
-            // ---- Action 4: listener trajectory integration ----
-            double speed = computeSpeed();
-            auto   uvec  = computeUnitVector();
+            // Listener kinematics only if accumulation is enabled
+            if (enableTimeAccumulation_)
+            {
+                double speed = computeSpeed();
+                auto   uvec  = computeUnitVector();
 
-            double vx = speed * static_cast<double>(uvec.x);
-            double vy = speed * static_cast<double>(uvec.y);
+                double vx = speed * static_cast<double>(uvec.x);
+                double vy = speed * static_cast<double>(uvec.y);
 
-            listenerPos_.x += static_cast<float>(vx * dtBlock);
-            listenerPos_.y += static_cast<float>(vy * dtBlock);
+                listenerPos_.x += static_cast<float>(vx * dtBlock);
+                listenerPos_.y += static_cast<float>(vy * dtBlock);
+            }
         }
 
         // ======================================
@@ -174,7 +192,7 @@ public:
         for (int i = 0; i < numSamples; ++i)
         {
             const double tSample =
-                enableTimeAccumulation_ && sr > 0.0
+                (sr > 0.0)
                     ? (tStart + static_cast<double>(i) / sr)
                     : tStart;
 
@@ -201,7 +219,7 @@ public:
 
             const double sample = carrier * env * pulse * atten;
 
-            buffer[i] = static_cast<float>(sample);
+            buffer[i] += static_cast<float>(sample);
         }
     }
 
@@ -274,7 +292,7 @@ public:
     // ------------------------------------------------------------
     // Action-10.5: Audio synthesis gate (default OFF)
     // ------------------------------------------------------------
-    void setAudioSynthesisEnabled(bool shouldEnable) noexcept
+    void setAudioSynthesisEnabled(bool shouldEnable) noexcept override
     {
         audioEnabled_ = shouldEnable;
     }
@@ -350,27 +368,41 @@ public:
     // x_{k,m} = k Δ⊥ n(φ) + m Δ∥ b(φ)
     juce::Point<float> computeEmitterPosition(int k, int m) const
     {
-        double dPerp = computeDeltaPerp();
-        double dPar  = computeDeltaParallel();
+        const double dPerp = computeDeltaPerp();
+        const double dPar  = computeDeltaParallel();
 
-        auto n = computeEmitterNormal();
-        auto b = computeEmitterTangent();
+        const auto n = computeEmitterNormal();
+        const auto b = computeEmitterTangent();
 
-        double nx = static_cast<double>(n.x);
-        double ny = static_cast<double>(n.y);
-        double bx = static_cast<double>(b.x);
-        double by = static_cast<double>(b.y);
+        const double nx = static_cast<double>(n.x);
+        const double ny = static_cast<double>(n.y);
+        const double bx = static_cast<double>(b.x);
+        const double by = static_cast<double>(b.y);
 
-        double x = static_cast<double>(k) * dPerp * nx
-                 + static_cast<double>(m) * dPar  * bx;
-        double y = static_cast<double>(k) * dPerp * ny
-                 + static_cast<double>(m) * dPar  * by;
+        double x = 0.0;
+        double y = 0.0;
 
-        return {
-            static_cast<float>(x),
-            static_cast<float>(y)
-        };
+        // ============================================================
+        // FIX: rho=0 => dPerp=inf. Single-line case must not do 0*inf.
+        // Only k=0 is meaningful; all k!=0 collapse to "far away".
+        // ============================================================
+        if (std::isfinite(dPerp))
+        {
+            x += static_cast<double>(k) * dPerp * nx;
+            y += static_cast<double>(k) * dPerp * ny;
+        }
+        else
+        {
+            // single-line lattice: ignore normal offsets
+            // (k term contributes 0)
+        }
+
+        x += static_cast<double>(m) * dPar * bx;
+        y += static_cast<double>(m) * dPar * by;
+
+        return { static_cast<float>(x), static_cast<float>(y) };
     }
+
 
     // ------------------------------------------------------------
     // Action-6: Distance + Retarded Time (pure math helpers)
@@ -579,7 +611,9 @@ public:
     // ------------------------------------------------------------
     void updateParams(const VoiceParams& vp)
     {
-        baseFrequencyHz_ = vp.oscFreq;
+        if (!pitchFromMidi_)
+            baseFrequencyHz_ = vp.oscFreq;
+
         adsrAttackSec_   = vp.envAttack;
         adsrReleaseSec_  = vp.envRelease;
     }
@@ -626,6 +660,9 @@ public:
             for (int m = mMin; m <= mMax; ++m)
             {
                 auto pos = computeEmitterPosition(k, m);
+                if (!std::isfinite(pos.x) || !std::isfinite(pos.y))
+                    continue;
+
                 double s = computePredictiveScoreForEmitter(pos);
 
                 if (!hasBest || s > best.score)
@@ -640,6 +677,11 @@ public:
         }
 
         return best;
+    }
+
+    void setPitchFromMidi(bool b) noexcept
+    {
+        pitchFromMidi_ = b;
     }
 
 private:
@@ -708,4 +750,6 @@ private:
     static constexpr double attenuationRMin_  = 0.25;
 
     bool audioEnabled_ = false;
+
+    bool pitchFromMidi_ = false;
 };

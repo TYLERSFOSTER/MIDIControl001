@@ -129,9 +129,9 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     // We do NOT add APVTS param yet to avoid breaking tests.
     // Rule: audible Doppler only when in VoiceDopp mode.
     // ============================================================
-    const bool enableAudio =
-        (snap.voiceMode == VoiceMode::VoiceDopp);
-
+    // Phase IV A11-1 — runtime audio enablement:
+    // Audio is ON only in VoiceDopp mode.
+    const bool enableAudio = (snap.voiceMode == VoiceMode::VoiceDopp);
     voiceManager_.setAudioSynthesisEnabled(enableAudio);
 
     voiceManager_.startBlock();

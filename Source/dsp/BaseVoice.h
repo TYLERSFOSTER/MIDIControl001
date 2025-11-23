@@ -14,6 +14,12 @@ public:
     // Audio render
     virtual void render(float* buffer, int numSamples) = 0;
 
+    // Phase IV A11-1: audio synthesis gate (default no-op)
+    virtual void setAudioSynthesisEnabled(bool enabled)
+    {
+        (void)enabled;
+    }
+
     // State queries
     virtual bool  isActive() const = 0;
     virtual int   getNote() const noexcept = 0;
