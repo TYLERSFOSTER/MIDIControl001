@@ -51,6 +51,14 @@ public:
     }
 
     // ============================================================
+    // Phase IV A11-1 — allow external toggle (GUI later)
+    // ============================================================
+    void setAudioSynthesisEnabled(bool enabled)
+    {
+        voiceManager_.setAudioSynthesisEnabled(enabled);
+    }
+
+    // ============================================================
     // Public Members
     // ============================================================
     juce::AudioProcessorValueTreeState apvts;

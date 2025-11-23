@@ -65,8 +65,15 @@ public:
                 int midiNote,
                 float velocity) override
     {
-        (void)snapshot;
         (void)velocity;
+
+        // ============================================================
+        // A10-1: latch synthesis-relevant globals from snapshot.
+        // (Still silent; just stores params for later Actions.)
+        // ============================================================
+        baseFrequencyHz_  = snapshot.oscFreq;
+        adsrAttackSec_    = snapshot.envAttack;
+        adsrReleaseSec_   = snapshot.envRelease;
 
         midiNote_ = midiNote;
         active_   = true;
@@ -107,28 +114,95 @@ public:
 
         // ======================================
         // Action-2 + Action-4 (gated)
+        // We must preserve this even when audio is disabled.
         // ======================================
-        if (enableTimeAccumulation_ && sampleRate_ > 0.0)
-        {
-            // Total dt for this block
-            double dt = static_cast<double>(numSamples) / sampleRate_;
+        const double sr = sampleRate_;
+        const double dtBlock = (sr > 0.0)
+                                 ? static_cast<double>(numSamples) / sr
+                                 : 0.0;
 
+        // snapshot "start of block" state for per-sample synthesis
+        const double tStart = timeSec_;
+        const auto   posStart = listenerPos_;
+
+        if (enableTimeAccumulation_ && sr > 0.0)
+        {
             // Accumulate global listener time
-            timeSec_ += dt;
+            timeSec_ += dtBlock;
 
             // ---- Action 4: listener trajectory integration ----
             double speed = computeSpeed();
-            auto   uvec  = computeUnitVector(); // float pair
+            auto   uvec  = computeUnitVector();
 
             double vx = speed * static_cast<double>(uvec.x);
             double vy = speed * static_cast<double>(uvec.y);
 
-            listenerPos_.x += static_cast<float>(vx * dt);
-            listenerPos_.y += static_cast<float>(vy * dt);
+            listenerPos_.x += static_cast<float>(vx * dtBlock);
+            listenerPos_.y += static_cast<float>(vy * dtBlock);
         }
 
-        // Still silent for Actions 1–7
-        std::fill(buffer, buffer + numSamples, 0.0f);
+        // ======================================
+        // Action-10.5 gate: keep legacy silence unless enabled
+        // ======================================
+        if (!audioEnabled_)
+        {
+            std::fill(buffer, buffer + numSamples, 0.0f);
+            return;
+        }
+
+        // ======================================
+        // Audible Doppler synthesis path (math already implemented)
+        // ======================================
+
+        // Choose best emitter in a small default window.
+        // Window size is a tunable constant; safe for tests because gate is off.
+        const int kMin = -latticeKRadius_;
+        const int kMax =  latticeKRadius_;
+        const int mMin = -latticeMRadius_;
+        const int mMax =  latticeMRadius_;
+
+        auto best = findBestEmitterInWindow(kMin, kMax, mMin, mMax);
+        auto emitterPos = best.position;
+
+        // Instantaneous listener velocity for local per-sample prediction
+        const double speed = computeSpeed();
+        const auto   uvec  = computeUnitVector();
+        const double vx = speed * static_cast<double>(uvec.x);
+        const double vy = speed * static_cast<double>(uvec.y);
+
+        // Synthesize per sample
+        for (int i = 0; i < numSamples; ++i)
+        {
+            const double tSample =
+                enableTimeAccumulation_ && sr > 0.0
+                    ? (tStart + static_cast<double>(i) / sr)
+                    : tStart;
+
+            const juce::Point<float> posSample {
+                posStart.x + static_cast<float>(vx * (static_cast<double>(i) / sr)),
+                posStart.y + static_cast<float>(vy * (static_cast<double>(i) / sr))
+            };
+
+            // Distance r_i(t)
+            const double dx = static_cast<double>(emitterPos.x) - static_cast<double>(posSample.x);
+            const double dy = static_cast<double>(emitterPos.y) - static_cast<double>(posSample.y);
+            const double r  = std::sqrt(dx*dx + dy*dy);
+
+            // Retarded time t_ret = t - r/c
+            const double tRet = tSample - r / speedOfSound_;
+
+            // Source components at retarded time
+            const double carrier = evalCarrierAtRetardedTime(tRet);
+            const double env     = evalAdsrAtRetardedTime(tRet);
+            const double pulse   = evalFieldPulseAtRetardedTime(tRet);
+
+            // Simple attenuation kernel (local-only, does not affect predictive score yet)
+            const double atten = evalAttenuationKernel(r);
+
+            const double sample = carrier * env * pulse * atten;
+
+            buffer[i] = static_cast<float>(sample);
+        }
     }
 
     // ------------------------------------------------------------
@@ -195,6 +269,19 @@ public:
     void enableTimeAccumulation(bool shouldEnable)
     {
         enableTimeAccumulation_ = shouldEnable;
+    }
+
+    // ------------------------------------------------------------
+    // Action-10.5: Audio synthesis gate (default OFF)
+    // ------------------------------------------------------------
+    void setAudioSynthesisEnabled(bool shouldEnable) noexcept
+    {
+        audioEnabled_ = shouldEnable;
+    }
+
+    bool isAudioSynthesisEnabledForTest() const noexcept
+    {
+        return audioEnabled_;
     }
 
     // ------------------------------------------------------------
@@ -487,6 +574,29 @@ public:
     float getCurrentLevel() const override  { return level_; }
 
     // ------------------------------------------------------------
+    // A10-1: Per-voice synthesis params pipeline
+    // Called by VoiceManager::startBlock() like VoiceA::updateParams()
+    // ------------------------------------------------------------
+    void updateParams(const VoiceParams& vp)
+    {
+        baseFrequencyHz_ = vp.oscFreq;
+        adsrAttackSec_   = vp.envAttack;
+        adsrReleaseSec_  = vp.envRelease;
+    }
+
+    // ------------------------------------------------------------
+    // A10-1: minimal public getters for tests
+    // ------------------------------------------------------------
+    double getBaseFrequencyHzForTest() const noexcept  { return baseFrequencyHz_; }
+    double getAdsrAttackSecForTest() const noexcept    { return adsrAttackSec_; }
+    double getAdsrReleaseSecForTest() const noexcept   { return adsrReleaseSec_; }
+
+    // === NEW for Action10.1 =========================================
+    double getBaseFrequencyForTest() const noexcept { return baseFrequencyHz_; }
+    double getAttackForTest() const noexcept        { return adsrAttackSec_; }
+    double getReleaseForTest() const noexcept       { return adsrReleaseSec_; }
+    
+    // ------------------------------------------------------------
     // Action-9: Lattice window sampling + best-emitter selection
     // ------------------------------------------------------------
     struct EmitterCandidate
@@ -578,4 +688,24 @@ private:
     // **Action-8 constant**
     // ------------------------------------------------------------
     static constexpr double predictiveHorizonSeconds_ = 1.0; // H = 1s
+
+    // ------------------------------------------------------------
+    // Action-10.5 local attenuation kernel
+    // w(r) = exp(-alpha r) / max(r, r_min)
+    // This is *audio-only* for now; predictive score integration is A10-4.
+    // ------------------------------------------------------------
+    double evalAttenuationKernel(double r) const noexcept
+    {
+        const double rSafe = (r < attenuationRMin_) ? attenuationRMin_ : r;
+        return std::exp(-attenuationAlpha_ * rSafe) / rSafe;
+    }
+
+    // Small default lattice window for audio (tune later)
+    static constexpr int latticeKRadius_ = 2;
+    static constexpr int latticeMRadius_ = 4;
+
+    static constexpr double attenuationAlpha_ = 0.05;
+    static constexpr double attenuationRMin_  = 0.25;
+
+    bool audioEnabled_ = false;
 };

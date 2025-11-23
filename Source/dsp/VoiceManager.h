@@ -122,6 +122,18 @@ public:
     }
 
     // ============================================================
+    // Phase IV A11-1 — runtime math-mode vs audio-mode switch
+    // Default = false (math-mode). Safe for tests.
+    // ============================================================
+    void setAudioSynthesisEnabled(bool enabled)
+    {
+        audioEnabled_ = enabled;
+
+        // Push immediately to existing voices
+        propagateAudioEnabledToVoices();
+    }
+
+    // ============================================================
     // Phase III – B4: Injectable Voice Factory Setter
     // Allows external code (processor/tests) to override voice construction.
     // ============================================================
@@ -165,6 +177,11 @@ public:
         applyModeConfiguration();
 
         // ============================================================
+        // Phase IV A11-1 — ensure voices see current audioEnabled state
+        // ============================================================
+        propagateAudioEnabledToVoices();
+
+        // ============================================================
         // Phase 5-C.4 — Persistent CC Cache Re-application
         // ============================================================
         snapshot.envAttack  = ccCache.envAttack;
@@ -194,6 +211,8 @@ public:
 
             if (auto* voiceA = dynamic_cast<VoiceA*>(voices_[i].get()))
                 voiceA->updateParams(vp);
+            else if (auto* voiceD = dynamic_cast<VoiceDopp*>(voices_[i].get()))
+                voiceD->updateParams(vp);
         }
     }
 
@@ -342,6 +361,11 @@ private:
         {
             auto v = makeVoice(mode_);
             v->prepare(sampleRate_);
+
+            // Phase IV A11-1 — new voices inherit audioEnabled flag
+            if (auto* vd = dynamic_cast<VoiceDopp*>(v.get()))
+                vd->setAudioSynthesisEnabled(audioEnabled_);
+
             voices_.push_back(std::move(v));
         }
     }
@@ -391,4 +415,20 @@ private:
 
     double sampleRate_ = 48000.0;
     juce::SmoothedValue<float> globalGain_{ 1.0f }; // clickless poly gain
+
+    // ============================================================
+    // Phase IV A11-1 — internal propagation helper
+    // ============================================================
+    void propagateAudioEnabledToVoices()
+    {
+        for (auto& v : voices_)
+        {
+            if (auto* vd = dynamic_cast<VoiceDopp*>(v.get()))
+                vd->setAudioSynthesisEnabled(audioEnabled_);
+            // Other voice types ignore this switch.
+        }
+    }
+
+    // Stored runtime mode (default false = math-mode)
+    bool audioEnabled_ = false;
 };

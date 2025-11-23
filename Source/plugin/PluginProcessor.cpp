@@ -124,6 +124,16 @@ void MIDIControl001AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer
     // Phase II A5 — forward mode into VoiceManager
     voiceManager_.setMode(snap.voiceMode);
 
+    // ============================================================
+    // Phase IV A11-1 — runtime audio enablement
+    // We do NOT add APVTS param yet to avoid breaking tests.
+    // Rule: audible Doppler only when in VoiceDopp mode.
+    // ============================================================
+    const bool enableAudio =
+        (snap.voiceMode == VoiceMode::VoiceDopp);
+
+    voiceManager_.setAudioSynthesisEnabled(enableAudio);
+
     voiceManager_.startBlock();
 
     for (const auto metadata : midi)
