@@ -156,8 +156,8 @@ public:
         // ======================================
         const double sr = sampleRate_;
         const double dtBlock = (sr > 0.0)
-                                 ? static_cast<double>(numSamples) / sr
-                                 : 0.0;
+                                ? static_cast<double>(numSamples) / sr
+                                : 0.0;
 
         // snapshot "start of block" state for per-sample synthesis
         const double tStart = timeSec_;
@@ -198,7 +198,6 @@ public:
         // ======================================
 
         // Choose best emitter in a small default window.
-        // Window size is a tunable constant; safe for tests because gate is off.
         const int kMin = -latticeKRadius_;
         const int kMax =  latticeKRadius_;
         const int mMin = -latticeMRadius_;
@@ -207,23 +206,29 @@ public:
         auto best = findBestEmitterInWindow(kMin, kMax, mMin, mMax);
         auto emitterPos = best.position;
 
-        // Instantaneous listener velocity for local per-sample prediction
-        const double speed = computeSpeed();
-        const auto   uvec  = computeUnitVector();
-        const double vx = speed * static_cast<double>(uvec.x);
-        const double vy = speed * static_cast<double>(uvec.y);
+        // ============================================================
+        // AUDIO-ONLY VELOCITY SCALING (does NOT affect tests)
+        // ============================================================
+        static constexpr double dopplerSpeedScale_ = 5.0;   // YOU CAN TUNE THIS
+        const double physicalSpeed = computeSpeed();         // unchanged math API
+        const double scaledSpeed   = physicalSpeed * dopplerSpeedScale_;
 
+        const auto uvec = computeUnitVector();
+
+        const double vx = scaledSpeed * static_cast<double>(uvec.x);
+        const double vy = scaledSpeed * static_cast<double>(uvec.y);
+
+        // ============================================================
         // Synthesize per sample
+        // ============================================================
         for (int i = 0; i < numSamples; ++i)
         {
-            const double tSample =
-                (sr > 0.0)
-                    ? (tStart + static_cast<double>(i) / sr)
-                    : tStart;
+            const double dt = (sr > 0.0) ? (static_cast<double>(i) / sr) : 0.0;
+            const double tSample = tStart + dt;
 
             const juce::Point<float> posSample {
-                posStart.x + static_cast<float>(vx * (static_cast<double>(i) / sr)),
-                posStart.y + static_cast<float>(vy * (static_cast<double>(i) / sr))
+                posStart.x + static_cast<float>(vx * dt),
+                posStart.y + static_cast<float>(vy * dt)
             };
 
             // Distance r_i(t)
@@ -239,11 +244,10 @@ public:
             const double env     = evalAdsrAtRetardedTime(tRet);
             const double pulse   = evalFieldPulseAtRetardedTime(tRet);
 
-            // Simple attenuation kernel (local-only, does not affect predictive score yet)
+            // Simple attenuation kernel
             const double atten = evalAttenuationKernel(r);
 
             const double sample = carrier * env * pulse * atten;
-
             buffer[i] += static_cast<float>(sample);
         }
     }
